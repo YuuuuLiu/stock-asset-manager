@@ -2789,6 +2789,11 @@ async function savePerson() {
 }
 
 
+async function updatePerson() {
+  return await savePerson();
+}
+
+
 async function deletePerson(id) {
   const person =
     state.persons.find(
