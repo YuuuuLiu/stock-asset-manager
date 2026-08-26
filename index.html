@@ -933,11 +933,6 @@ id="baseDialogPersonText">
 </div>
 
 <div>
-<label>股票名稱</label>
-<input id="baseName">
-</div>
-
-<div>
 <label>股數</label>
 <input id="baseQty" type="number" step="0.0001">
 </div>
@@ -2142,7 +2137,6 @@ function renderInventory() {
 
             <td>
             <b>${esc(r.StockCode)}</b>
-            ${esc(r.StockName)}
             </td>
 
             <td>
@@ -2302,9 +2296,6 @@ function openBaseDialog() {
   baseCode.value =
     '';
 
-  baseName.value =
-    '';
-
   baseQty.value =
     '';
 
@@ -2347,9 +2338,6 @@ async function saveBaseInventory() {
           baseCode.value
             .trim()
             .toUpperCase(),
-
-        StockName:
-          baseName.value.trim(),
 
         Quantity:
           +baseQty.value || 0,
