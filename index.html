@@ -327,35 +327,83 @@ select{
 
 
 
-.dashboard-date-filter{
-  display:grid;
-  grid-template-columns:repeat(3,minmax(120px,160px));
-  gap:12px;
-  align-items:end;
-  margin:14px 0 10px;
+.dashboard-head{
+  margin:24px 0 14px;
 }
 
-.dashboard-date-filter label{
+.dashboard-title-row{
+  display:flex;
+  align-items:center;
+  gap:28px;
+  flex-wrap:wrap;
+}
+
+.dashboard-title-row h2{
+  margin:0;
+}
+
+.dashboard-title-row .dashboard-data-date{
+  margin:0;
+  font-size:14px;
+  font-weight:700;
+  color:var(--text);
+}
+
+.dashboard-head .current-person-text{
+  margin-top:8px;
+}
+
+.dashboard-filters{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(140px,180px));
+  gap:12px;
+  align-items:end;
+  margin:16px 0 22px;
+}
+
+.dashboard-filters label{
   display:block;
   margin-bottom:6px;
   color:var(--muted);
   font-size:13px;
 }
 
-.dashboard-date-filter select{
+.dashboard-filters select{
   width:100%;
   min-height:44px;
 }
 
-.dashboard-data-date{
-  margin:10px 0 16px;
-  font-size:16px;
-  font-weight:700;
+.dashboard-cards{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:14px;
+  margin-bottom:18px;
+}
+
+.dashboard-chart-card{
+  width:100%;
+  margin-top:18px;
+}
+
+@media(max-width:1000px){
+  .dashboard-cards{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
 }
 
 @media(max-width:700px){
-  .dashboard-date-filter{
+  .dashboard-filters{
     grid-template-columns:1fr;
+  }
+
+  .dashboard-cards{
+    grid-template-columns:1fr;
+  }
+
+  .dashboard-title-row{
+    gap:10px;
+    align-items:flex-start;
+    flex-direction:column;
   }
 }
 
@@ -450,52 +498,44 @@ onclick="showPage('persons',this)">
 id="dashboard"
 class="page active">
 
-<div class="toolbar">
+<div class="dashboard-head">
 
-<div>
-  <h2 style="margin:0 0 4px;">Dashboard</h2>
+  <div class="dashboard-title-row">
+    <h2>Dashboard</h2>
+
+    <div class="dashboard-data-date" id="dashboardDataDate">
+      資料日期：—
+    </div>
+  </div>
+
   <div class="sub current-person-text" id="dashboardPersonText"></div>
+
 </div>
-
-
 
 <div class="person-context market-us-only">
-美股以 USD 獨立顯示；總資產與總持股水位僅以台幣資產（台股 + 銀行帳戶）計算。
+美股以 USD 獨立顯示；總資產僅以台幣資產（收盤台股市值 + 銀行帳戶）計算。
 </div>
 
-<div class="dashboard-date-filter">
+<div class="dashboard-filters">
 
-<div>
-<label for="dashboardYear">年份</label>
-<select
-id="dashboardYear"
-onchange="handleDashboardYearChange()">
-</select>
-</div>
+  <div>
+    <label for="dashboardYear">年份</label>
+    <select id="dashboardYear" onchange="handleDashboardYearChange()"></select>
+  </div>
 
-<div>
-<label for="dashboardMonth">月份</label>
-<select
-id="dashboardMonth"
-onchange="handleDashboardMonthChange()">
-</select>
-</div>
+  <div>
+    <label for="dashboardMonth">月份</label>
+    <select id="dashboardMonth" onchange="handleDashboardMonthChange()"></select>
+  </div>
 
-<div>
-<label for="dashboardDay">日期</label>
-<select
-id="dashboardDay"
-onchange="renderDashboard()">
-</select>
-</div>
+  <div>
+    <label for="dashboardDay">日期</label>
+    <select id="dashboardDay" onchange="renderDashboard()"></select>
+  </div>
 
 </div>
 
-<div class="dashboard-data-date" id="dashboardDataDate">
-資料日期：—
-</div>
-
-<div class="cards">
+<div class="dashboard-cards">
 
 <div class="card">
 <div class="label">總資產</div>
@@ -546,9 +586,7 @@ onchange="renderDashboard()">
 
 </div>
 
-<div
-class="card"
-style="margin-top:18px;">
+<div class="card dashboard-chart-card">
 
 <div class="chart-wrap">
 <canvas id="assetChart"></canvas>
@@ -556,8 +594,8 @@ style="margin-top:18px;">
 
 </div>
 
-</section>
 
+</section>
 
 <!-- 每日資產 -->
 
