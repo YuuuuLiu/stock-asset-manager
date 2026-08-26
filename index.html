@@ -450,12 +450,12 @@ onchange="renderDashboard()">
 </div>
 
 <div class="card">
-<div class="label">總持股水位</div>
-<div class="value" id="dTotalPosition">0%</div>
+<div class="label">開盤台股市值</div>
+<div class="value" id="dTWOpen">NT$ 0</div>
 </div>
 
 <div class="card">
-<div class="label">台股</div>
+<div class="label">收盤台股市值</div>
 <div class="value" id="dTW">NT$ 0</div>
 <div class="sub" id="dTWPosition">水位 0%</div>
 </div>
@@ -477,7 +477,7 @@ onchange="renderDashboard()">
 </div>
 
 <div class="card">
-<div class="label">銀行帳戶（扣除今日交易金額）</div>
+<div class="label">銀行帳戶<br>（扣除今日交易金額）</div>
 <div class="value" id="dBankAfterTrade">NT$ 0</div>
 </div>
 
@@ -544,17 +544,17 @@ class="page">
 
 <tr>
 <th>日期</th>
-<th>台股市值</th>
+<th>開盤台股市值</th>
+<th>收盤台股市值</th>
 <th>台股水位</th>
 <th class="market-us-only">美股市值</th>
 <th class="market-us-only">美股水位</th>
 <th>銀行帳戶</th>
 <th>今日交易總金額</th>
-<th>銀行帳戶（扣除今日交易金額）</th>
+<th>銀行帳戶<br>（扣除今日交易金額）</th>
 <th>狀態</th>
 <th>金額</th>
 <th>總資產</th>
-<th>總水位</th>
 <th>增減</th>
 <th>操作</th>
 </tr>
@@ -821,8 +821,13 @@ type="hidden">
 </div>
 
 <div>
-<label>台股庫存總市值</label>
-<input id="twStockValue" type="number" step="1">
+<label>開盤台股市值</label>
+<input id="twOpenValue" type="number" step="1">
+</div>
+
+<div>
+<label>收盤台股市值</label>
+<input id="twCloseValue" type="number" step="1">
 </div>
 
 <div>
@@ -1516,8 +1521,8 @@ function renderDashboard() {
     dTotal.textContent =
       'NT$ 0';
 
-    dTotalPosition.textContent =
-      '0%';
+    dTWOpen.textContent =
+      'NT$ 0';
 
     dTW.textContent =
       'NT$ 0';
@@ -1564,15 +1569,14 @@ function renderDashboard() {
       latest.TotalAsset
     );
 
-  dTotalPosition.textContent =
-    Number(
-      latest.TotalPositionRate || 0
-    ).toFixed(2)
-    + '%';
+  dTWOpen.textContent =
+    fmtTWD(
+      latest.TWOpenValue
+    );
 
   dTW.textContent =
     fmtTWD(
-      latest.TWStockValue
+      latest.TWCloseValue
     );
 
   dTWPosition.textContent =
@@ -1653,13 +1657,27 @@ function renderDashboard() {
             },
 
             {
-              label:'台股市值',
+              label:'開盤台股市值',
 
               data:
                 rows.map(
                   x =>
                     Number(
-                      x.TWStockValue || 0
+                      x.TWOpenValue || 0
+                    )
+                ),
+
+              tension:.3
+            },
+
+            {
+              label:'收盤台股市值',
+
+              data:
+                rows.map(
+                  x =>
+                    Number(
+                      x.TWCloseValue || 0
                     )
                 ),
 
@@ -1730,7 +1748,11 @@ function renderDaily() {
           </td>
 
           <td>
-          ${fmtTWD(r.TWStockValue)}
+          ${fmtTWD(r.TWOpenValue)}
+          </td>
+
+          <td>
+          ${fmtTWD(r.TWCloseValue)}
           </td>
 
           <td>
@@ -1769,10 +1791,6 @@ function renderDaily() {
           <b>
           ${fmtTWD(r.TotalAsset)}
           </b>
-          </td>
-
-          <td>
-          ${Number(r.TotalPositionRate || 0).toFixed(2)}%
           </td>
 
           <td
@@ -1844,7 +1862,10 @@ function openDailyDialog() {
       .toISOString()
       .slice(0,10);
 
-  twStockValue.value =
+  twOpenValue.value =
+    0;
+
+  twCloseValue.value =
     0;
 
   twPositionRate.value =
@@ -1905,8 +1926,11 @@ function editDaily(id) {
   dailyDate.value =
     row.Date || '';
 
-  twStockValue.value =
-    row.TWStockValue || 0;
+  twOpenValue.value =
+    row.TWOpenValue || 0;
+
+  twCloseValue.value =
+    row.TWCloseValue || 0;
 
   twPositionRate.value =
     row.TWPositionRate || 0;
@@ -1952,8 +1976,11 @@ async function saveDaily() {
     Date:
       dailyDate.value,
 
-    TWStockValue:
-      +twStockValue.value || 0,
+    TWOpenValue:
+      +twOpenValue.value || 0,
+
+    TWCloseValue:
+      +twCloseValue.value || 0,
 
     TWPositionRate:
       +twPositionRate.value || 0,
