@@ -461,7 +461,12 @@ onchange="renderDashboard()">
 </div>
 
 <div class="card market-us-only">
-<div class="label">美股</div>
+<div class="label">開盤美股市值</div>
+<div class="value" id="dUSOpen">US$ 0</div>
+</div>
+
+<div class="card market-us-only">
+<div class="label">收盤美股市值</div>
 <div class="value" id="dUS">US$ 0</div>
 <div class="sub" id="dUSPosition">水位 0%</div>
 </div>
@@ -547,7 +552,8 @@ class="page">
 <th>開盤台股市值</th>
 <th>收盤台股市值</th>
 <th>台股水位</th>
-<th class="market-us-only">美股市值</th>
+<th class="market-us-only">開盤美股市值</th>
+<th class="market-us-only">收盤美股市值</th>
 <th class="market-us-only">美股水位</th>
 <th>銀行帳戶</th>
 <th>今日交易總金額</th>
@@ -836,8 +842,13 @@ type="hidden">
 </div>
 
 <div class="market-us-only">
-<label>美股庫存總市值 (USD)</label>
-<input id="usStockValue" type="number" step="0.01">
+<label>開盤美股市值 (USD)</label>
+<input id="usOpenValue" type="number" step="0.01">
+</div>
+
+<div class="market-us-only">
+<label>收盤美股市值 (USD)</label>
+<input id="usCloseValue" type="number" step="0.01">
 </div>
 
 <div class="market-us-only">
@@ -1530,6 +1541,9 @@ function renderDashboard() {
     dTWPosition.textContent =
       '水位 0%';
 
+    dUSOpen.textContent =
+      'US$ 0';
+
     dUS.textContent =
       'US$ 0';
 
@@ -1586,9 +1600,14 @@ function renderDashboard() {
     ).toFixed(2)
     + '%';
 
+  dUSOpen.textContent =
+    fmtUSD(
+      latest.USOpenValue
+    );
+
   dUS.textContent =
     fmtUSD(
-      latest.USStockValue
+      latest.USCloseValue
     );
 
   dUSPosition.textContent =
@@ -1727,7 +1746,7 @@ function renderDaily() {
   if (!rows.length) {
     const colspan =
       currentPersonHasUSMarket()
-        ? 14
+        ? 15
         : 12;
 
     dailyBody.innerHTML =
@@ -1760,7 +1779,11 @@ function renderDaily() {
           </td>
 
           <td class="market-us-only">
-          ${fmtUSD(r.USStockValue)}
+          ${fmtUSD(r.USOpenValue)}
+          </td>
+
+          <td class="market-us-only">
+          ${fmtUSD(r.USCloseValue)}
           </td>
 
           <td class="market-us-only">
@@ -1871,7 +1894,10 @@ function openDailyDialog() {
   twPositionRate.value =
     0;
 
-  usStockValue.value =
+  usOpenValue.value =
+    0;
+
+  usCloseValue.value =
     0;
 
   usPositionRate.value =
@@ -1935,8 +1961,11 @@ function editDaily(id) {
   twPositionRate.value =
     row.TWPositionRate || 0;
 
-  usStockValue.value =
-    row.USStockValue || 0;
+  usOpenValue.value =
+    row.USOpenValue || 0;
+
+  usCloseValue.value =
+    row.USCloseValue || 0;
 
   usPositionRate.value =
     row.USPositionRate || 0;
@@ -1985,8 +2014,11 @@ async function saveDaily() {
     TWPositionRate:
       +twPositionRate.value || 0,
 
-    USStockValue:
-      +usStockValue.value || 0,
+    USOpenValue:
+      +usOpenValue.value || 0,
+
+    USCloseValue:
+      +usCloseValue.value || 0,
 
     USPositionRate:
       +usPositionRate.value || 0,
@@ -2022,10 +2054,22 @@ async function saveDaily() {
 
   // V24 後端會回傳本次實際儲存的開盤 / 收盤值。
   // 若沒有 data，通常代表 Apps Script Web App 還是舊部署版本。
-  if (
+  const missingTW =
     !res.data ||
     res.data.TWOpenValue === undefined ||
-    res.data.TWCloseValue === undefined
+    res.data.TWCloseValue === undefined;
+
+  const missingUS =
+    currentPersonHasUSMarket() &&
+    (
+      !res.data ||
+      res.data.USOpenValue === undefined ||
+      res.data.USCloseValue === undefined
+    );
+
+  if (
+    missingTW ||
+    missingUS
   ) {
     alert(
       '前端已更新，但 Apps Script 可能仍是舊部署版本。\n' +
