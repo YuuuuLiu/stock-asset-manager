@@ -326,11 +326,13 @@ select{
 }
 
 
+
 .dashboard-date-filter{
   display:grid;
   grid-template-columns:repeat(3,minmax(120px,160px));
   gap:12px;
   align-items:end;
+  margin:14px 0 10px;
 }
 
 .dashboard-date-filter label{
@@ -455,6 +457,12 @@ class="page active">
   <div class="sub current-person-text" id="dashboardPersonText"></div>
 </div>
 
+
+
+<div class="person-context market-us-only">
+美股以 USD 獨立顯示；總資產與總持股水位僅以台幣資產（台股 + 銀行帳戶）計算。
+</div>
+
 <div class="dashboard-date-filter">
 
 <div>
@@ -481,12 +489,6 @@ onchange="renderDashboard()">
 </select>
 </div>
 
-</div>
-
-</div>
-
-<div class="person-context market-us-only">
-美股以 USD 獨立顯示；總資產與總持股水位僅以台幣資產（台股 + 銀行帳戶）計算。
 </div>
 
 <div class="dashboard-data-date" id="dashboardDataDate">
@@ -1419,7 +1421,6 @@ function refreshFilterOptions() {
     dailyRows
   );
 
-  refreshDashboardMonthOptions();
 
   buildYearSelect(
     dailyYear,
@@ -1482,6 +1483,8 @@ function handleTradeYearChange() {
 
 
 
+
+
 function getDashboardDateRows() {
   return byPerson(state.daily)
     .filter(row => row.Date)
@@ -1496,14 +1499,40 @@ function getDashboardDateRows() {
 }
 
 
-function refreshDashboardMonthOptions() {
+function setDashboardDateToToday() {
+  const today =
+    getTodayDateString();
+
+  const year =
+    today.slice(0, 4);
+
+  const month =
+    today.slice(5, 7);
+
+  const day =
+    today.slice(8, 10);
+
+  dashboardYear.value =
+    year;
+
+  refreshDashboardMonthOptions(
+    month,
+    day
+  );
+}
+
+
+function refreshDashboardMonthOptions(
+  preferredMonth = '',
+  preferredDay = ''
+) {
   const year =
     dashboardYear.value || '';
 
   const rows =
     getDashboardDateRows();
 
-  const months =
+  const monthsFromData =
     [...new Set(
       rows
         .filter(
@@ -1518,13 +1547,29 @@ function refreshDashboardMonthOptions() {
               .slice(5, 7)
         )
     )]
-      .filter(Boolean)
-      .sort(
-        (a, b) =>
-          Number(b) - Number(a)
-      );
+      .filter(Boolean);
+
+  const today =
+    getTodayDateString();
+
+  const todayMonth =
+    today.slice(5, 7);
+
+  if (
+    year === today.slice(0, 4) &&
+    !monthsFromData.includes(todayMonth)
+  ) {
+    monthsFromData.push(todayMonth);
+  }
+
+  const months =
+    monthsFromData.sort(
+      (a, b) =>
+        Number(b) - Number(a)
+    );
 
   const oldValue =
+    preferredMonth ||
     dashboardMonth.value;
 
   dashboardMonth.innerHTML =
@@ -1546,11 +1591,15 @@ function refreshDashboardMonthOptions() {
       months[0];
   }
 
-  refreshDashboardDayOptions();
+  refreshDashboardDayOptions(
+    preferredDay
+  );
 }
 
 
-function refreshDashboardDayOptions() {
+function refreshDashboardDayOptions(
+  preferredDay = ''
+) {
   const year =
     dashboardYear.value || '';
 
@@ -1560,7 +1609,7 @@ function refreshDashboardDayOptions() {
   const rows =
     getDashboardDateRows();
 
-  const days =
+  const daysFromData =
     [...new Set(
       rows
         .filter(
@@ -1575,13 +1624,30 @@ function refreshDashboardDayOptions() {
               .slice(8, 10)
         )
     )]
-      .filter(Boolean)
-      .sort(
-        (a, b) =>
-          Number(b) - Number(a)
-      );
+      .filter(Boolean);
+
+  const today =
+    getTodayDateString();
+
+  const todayDay =
+    today.slice(8, 10);
+
+  if (
+    `${year}-${month}` ===
+      today.slice(0, 7) &&
+    !daysFromData.includes(todayDay)
+  ) {
+    daysFromData.push(todayDay);
+  }
+
+  const days =
+    daysFromData.sort(
+      (a, b) =>
+        Number(b) - Number(a)
+    );
 
   const oldValue =
+    preferredDay ||
     dashboardDay.value;
 
   dashboardDay.innerHTML =
@@ -1637,6 +1703,42 @@ function getDashboardSelectedDate() {
 
   return `${year}-${month}-${day}`;
 }
+
+
+function getTodayDateString() {
+  const now =
+    new Date();
+
+  const year =
+    now.getFullYear();
+
+  const month =
+    String(
+      now.getMonth() + 1
+    ).padStart(2, '0');
+
+  const day =
+    String(
+      now.getDate()
+    ).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
+}
+
+
+function getDashboardDateRows() {
+  return byPerson(state.daily)
+    .filter(row => row.Date)
+    .slice()
+    .sort(
+      (a, b) =>
+        String(a.Date)
+          .localeCompare(
+            String(b.Date)
+          )
+    );
+}
+
 
 
 function currentPersonHasUSMarket() {
@@ -1715,7 +1817,10 @@ function renderAll() {
 
 function renderDashboard() {
   const selectedYear =
-    dashboardYear.value || '';
+    dashboardYear.value ||
+    String(
+      new Date().getFullYear()
+    );
 
   const rows =
     filterRowsByYearMonth(
@@ -1735,7 +1840,8 @@ function renderDashboard() {
       );
 
   const selectedDate =
-    getDashboardSelectedDate();
+    getDashboardSelectedDate() ||
+    getTodayDateString();
 
   const latest =
     rows.find(
@@ -1749,11 +1855,14 @@ function renderDashboard() {
       ? '資料日期：' +
         String(latest.Date)
           .replaceAll('-', '/')
-      : selectedDate
-        ? '資料日期：' +
-          selectedDate.replaceAll('-', '/') +
-          '（該日期無資料）'
-        : '資料日期：—';
+      : '資料日期：' +
+        selectedDate.replaceAll('-', '/') +
+        (
+          selectedDate ===
+          getTodayDateString()
+            ? '（今日無資料）'
+            : '（該日期無資料）'
+        );
 
   if (!latest) {
     dTotal.textContent =
