@@ -325,6 +325,38 @@ select{
   display:none !important;
 }
 
+
+.dashboard-date-filter{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(120px,160px));
+  gap:12px;
+  align-items:end;
+}
+
+.dashboard-date-filter label{
+  display:block;
+  margin-bottom:6px;
+  color:var(--muted);
+  font-size:13px;
+}
+
+.dashboard-date-filter select{
+  width:100%;
+  min-height:44px;
+}
+
+.dashboard-data-date{
+  margin:10px 0 16px;
+  font-size:16px;
+  font-weight:700;
+}
+
+@media(max-width:700px){
+  .dashboard-date-filter{
+    grid-template-columns:1fr;
+  }
+}
+
 @media(max-width:1000px){
   .cards{
     grid-template-columns:1fr 1fr;
@@ -423,16 +455,31 @@ class="page active">
   <div class="sub current-person-text" id="dashboardPersonText"></div>
 </div>
 
-<div class="filter-bar">
+<div class="dashboard-date-filter">
 
-<label style="margin:0;">
-年份
-</label>
-
+<div>
+<label for="dashboardYear">年份</label>
 <select
 id="dashboardYear"
+onchange="handleDashboardYearChange()">
+</select>
+</div>
+
+<div>
+<label for="dashboardMonth">月份</label>
+<select
+id="dashboardMonth"
+onchange="handleDashboardMonthChange()">
+</select>
+</div>
+
+<div>
+<label for="dashboardDay">日期</label>
+<select
+id="dashboardDay"
 onchange="renderDashboard()">
 </select>
+</div>
 
 </div>
 
@@ -440,6 +487,10 @@ onchange="renderDashboard()">
 
 <div class="person-context market-us-only">
 美股以 USD 獨立顯示；總資產與總持股水位僅以台幣資產（台股 + 銀行帳戶）計算。
+</div>
+
+<div class="dashboard-data-date" id="dashboardDataDate">
+資料日期：—
 </div>
 
 <div class="cards">
@@ -1368,6 +1419,8 @@ function refreshFilterOptions() {
     dailyRows
   );
 
+  refreshDashboardMonthOptions();
+
   buildYearSelect(
     dailyYear,
     dailyRows
@@ -1426,6 +1479,164 @@ function handleTradeYearChange() {
 }
 
 
+
+
+
+function getDashboardDateRows() {
+  return byPerson(state.daily)
+    .filter(row => row.Date)
+    .slice()
+    .sort(
+      (a, b) =>
+        String(a.Date)
+          .localeCompare(
+            String(b.Date)
+          )
+    );
+}
+
+
+function refreshDashboardMonthOptions() {
+  const year =
+    dashboardYear.value || '';
+
+  const rows =
+    getDashboardDateRows();
+
+  const months =
+    [...new Set(
+      rows
+        .filter(
+          row =>
+            String(row.Date)
+              .slice(0, 4) ===
+            year
+        )
+        .map(
+          row =>
+            String(row.Date)
+              .slice(5, 7)
+        )
+    )]
+      .filter(Boolean)
+      .sort(
+        (a, b) =>
+          Number(b) - Number(a)
+      );
+
+  const oldValue =
+    dashboardMonth.value;
+
+  dashboardMonth.innerHTML =
+    months
+      .map(
+        month =>
+          `<option value="${month}">${Number(month)}月</option>`
+      )
+      .join('');
+
+  if (
+    oldValue &&
+    months.includes(oldValue)
+  ) {
+    dashboardMonth.value =
+      oldValue;
+  } else if (months.length) {
+    dashboardMonth.value =
+      months[0];
+  }
+
+  refreshDashboardDayOptions();
+}
+
+
+function refreshDashboardDayOptions() {
+  const year =
+    dashboardYear.value || '';
+
+  const month =
+    dashboardMonth.value || '';
+
+  const rows =
+    getDashboardDateRows();
+
+  const days =
+    [...new Set(
+      rows
+        .filter(
+          row =>
+            String(row.Date)
+              .slice(0, 7) ===
+            `${year}-${month}`
+        )
+        .map(
+          row =>
+            String(row.Date)
+              .slice(8, 10)
+        )
+    )]
+      .filter(Boolean)
+      .sort(
+        (a, b) =>
+          Number(b) - Number(a)
+      );
+
+  const oldValue =
+    dashboardDay.value;
+
+  dashboardDay.innerHTML =
+    days
+      .map(
+        day =>
+          `<option value="${day}">${Number(day)}日</option>`
+      )
+      .join('');
+
+  if (
+    oldValue &&
+    days.includes(oldValue)
+  ) {
+    dashboardDay.value =
+      oldValue;
+  } else if (days.length) {
+    dashboardDay.value =
+      days[0];
+  }
+}
+
+
+function handleDashboardYearChange() {
+  refreshDashboardMonthOptions();
+  renderDashboard();
+}
+
+
+function handleDashboardMonthChange() {
+  refreshDashboardDayOptions();
+  renderDashboard();
+}
+
+
+function getDashboardSelectedDate() {
+  const year =
+    dashboardYear.value || '';
+
+  const month =
+    dashboardMonth.value || '';
+
+  const day =
+    dashboardDay.value || '';
+
+  if (
+    !year ||
+    !month ||
+    !day
+  ) {
+    return '';
+  }
+
+  return `${year}-${month}-${day}`;
+}
 
 
 function currentPersonHasUSMarket() {
@@ -1523,7 +1734,28 @@ function renderDashboard() {
             )
       );
 
-  if (!rows.length) {
+  const selectedDate =
+    getDashboardSelectedDate();
+
+  const latest =
+    rows.find(
+      row =>
+        String(row.Date) ===
+        selectedDate
+    ) || null;
+
+  dashboardDataDate.textContent =
+    latest
+      ? '資料日期：' +
+        String(latest.Date)
+          .replaceAll('-', '/')
+      : selectedDate
+        ? '資料日期：' +
+          selectedDate.replaceAll('-', '/') +
+          '（該日期無資料）'
+        : '資料日期：—';
+
+  if (!latest) {
     dTotal.textContent =
       'NT$ 0';
 
@@ -1567,11 +1799,6 @@ function renderDashboard() {
 
     return;
   }
-
-  const latest =
-    rows[
-      rows.length - 1
-    ];
 
   dTotal.textContent =
     fmtTWD(
