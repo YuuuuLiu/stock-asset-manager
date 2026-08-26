@@ -1,0 +1,2582 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>股票資產管理系統</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+:root{
+  --bg:#f5f7fb;
+  --card:#ffffff;
+  --text:#182033;
+  --muted:#738096;
+  --primary:#2d4b74;
+  --line:#e6eaf0;
+  --red:#d64a4a;
+  --green:#2f8a61;
+}
+
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  font-family:Arial,"Microsoft JhengHei",sans-serif;
+  background:var(--bg);
+  color:var(--text);
+}
+
+header{
+  background:#203550;
+  color:white;
+  padding:18px 24px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:18px;
+}
+
+header b{
+  font-size:20px;
+}
+
+.person-box{
+  display:flex;
+  gap:8px;
+  align-items:center;
+}
+
+.person-box select{
+  min-width:180px;
+}
+
+main{
+  max-width:1450px;
+  margin:auto;
+  padding:24px;
+}
+
+.tabs{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-bottom:20px;
+}
+
+button{
+  border:0;
+  border-radius:9px;
+  padding:10px 14px;
+  cursor:pointer;
+  background:var(--primary);
+  color:white;
+}
+
+button.secondary{
+  background:#e9edf3;
+  color:#2d4b74;
+}
+
+button.danger{
+  background:#fae8e8;
+  color:#b33b3b;
+}
+
+button.small{
+  padding:6px 9px;
+}
+
+.tabs button{
+  background:#e9edf3;
+  color:#2d4b74;
+}
+
+.tabs button.active{
+  background:var(--primary);
+  color:white;
+}
+
+.page{
+  display:none;
+}
+
+.page.active{
+  display:block;
+}
+
+.toolbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  flex-wrap:wrap;
+  margin:20px 0 12px;
+}
+
+.cards{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:14px;
+}
+
+.card{
+  background:white;
+  border-radius:14px;
+  padding:18px;
+  box-shadow:0 5px 20px rgba(0,0,0,.06);
+}
+
+.label{
+  color:var(--muted);
+  font-size:13px;
+}
+
+.value{
+  font-size:24px;
+  font-weight:700;
+  margin-top:8px;
+}
+
+.sub{
+  color:var(--muted);
+  font-size:12px;
+  margin-top:5px;
+}
+
+.up{
+  color:var(--red);
+}
+
+.down{
+  color:var(--green);
+}
+
+.person-context{
+  background:#edf4fb;
+  color:#51677f;
+  padding:10px 14px;
+  border-radius:10px;
+  margin-bottom:14px;
+  font-size:13px;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  background:white;
+  border-radius:12px;
+  overflow:hidden;
+}
+
+th,
+td{
+  padding:10px;
+  border-bottom:1px solid var(--line);
+  text-align:left;
+  font-size:14px;
+}
+
+th{
+  background:#fbfcfe;
+  color:#68758a;
+}
+
+.empty{
+  text-align:center!important;
+  color:#999;
+  padding:28px!important;
+}
+
+dialog{
+  border:0;
+  border-radius:14px;
+  width:min(680px,92vw);
+  padding:20px;
+  box-shadow:0 24px 70px rgba(0,0,0,.25);
+}
+
+dialog::backdrop{
+  background:rgba(12,20,32,.38);
+}
+
+.form{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+
+.form .full{
+  grid-column:1/-1;
+}
+
+label{
+  display:block;
+  color:var(--muted);
+  font-size:13px;
+  margin-bottom:5px;
+}
+
+input,
+select{
+  width:100%;
+  padding:10px;
+  border:1px solid #d7dde6;
+  border-radius:8px;
+  background:white;
+}
+
+.actions{
+  display:flex;
+  justify-content:flex-end;
+  gap:8px;
+  margin-top:18px;
+}
+
+.chart-wrap{
+  height:330px;
+}
+
+
+.filter-bar{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+
+.filter-bar select{
+  min-width:120px;
+}
+
+@media(max-width:1000px){
+  .cards{
+    grid-template-columns:1fr 1fr;
+  }
+}
+
+@media(max-width:650px){
+  .cards,
+  .form{
+    grid-template-columns:1fr;
+  }
+
+  header{
+    flex-direction:column;
+    align-items:flex-start;
+  }
+
+  main{
+    padding:14px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+
+<div>
+  <b>股票資產管理系統</b>
+  <div style="font-size:12px;color:#d8e2ef;margin-top:4px;">
+    以人員為單位管理投資資產
+  </div>
+</div>
+
+<div class="person-box">
+
+<span>
+目前人員
+</span>
+
+<select
+id="currentPerson"
+onchange="renderAll()">
+</select>
+
+</div>
+
+</header>
+
+
+<main>
+
+
+<div class="tabs">
+
+<button
+class="active"
+onclick="showPage('dashboard',this)">
+Dashboard
+</button>
+
+<button
+onclick="showPage('daily',this)">
+每日資產
+</button>
+
+<button
+onclick="showPage('inventory',this)">
+股票庫存
+</button>
+
+<button
+onclick="showPage('trades',this)">
+交易紀錄
+</button>
+
+<button
+onclick="showPage('persons',this)">
+人員管理
+</button>
+
+</div>
+
+
+<!-- Dashboard -->
+
+<section
+id="dashboard"
+class="page active">
+
+<div class="toolbar">
+
+<div>
+  <h2 style="margin:0 0 4px;">Dashboard</h2>
+  <div class="sub" id="dashboardPersonText"></div>
+</div>
+
+<div class="filter-bar">
+
+<label style="margin:0;">
+年份
+</label>
+
+<select
+id="dashboardYear"
+onchange="renderDashboard()">
+</select>
+
+</div>
+
+</div>
+
+<div class="person-context">
+美股以 USD 獨立顯示；總資產與總持股水位僅以台幣資產（台股 + 銀行帳戶）計算。
+</div>
+
+<div class="cards">
+
+<div class="card">
+<div class="label">總資產</div>
+<div class="value" id="dTotal">NT$ 0</div>
+</div>
+
+<div class="card">
+<div class="label">總持股水位</div>
+<div class="value" id="dTotalPosition">0%</div>
+</div>
+
+<div class="card">
+<div class="label">台股</div>
+<div class="value" id="dTW">NT$ 0</div>
+<div class="sub" id="dTWPosition">水位 0%</div>
+</div>
+
+<div class="card">
+<div class="label">美股</div>
+<div class="value" id="dUS">US$ 0</div>
+<div class="sub" id="dUSPosition">水位 0%</div>
+</div>
+
+<div class="card">
+<div class="label">銀行帳戶</div>
+<div class="value" id="dBank">NT$ 0</div>
+</div>
+
+<div class="card">
+<div class="label">今日交易總金額</div>
+<div class="value" id="dTodayTrade">NT$ 0</div>
+</div>
+
+<div class="card">
+<div class="label">銀行帳戶 - 今日交易</div>
+<div class="value" id="dBankAfterTrade">NT$ 0</div>
+</div>
+
+<div class="card">
+<div class="label" id="dAdjustmentLabel">可佈局 / 調節</div>
+<div class="value" id="dAdjustment">NT$ 0</div>
+</div>
+
+</div>
+
+<div
+class="card"
+style="margin-top:18px;">
+
+<div class="chart-wrap">
+<canvas id="assetChart"></canvas>
+</div>
+
+</div>
+
+</section>
+
+
+<!-- 每日資產 -->
+
+<section
+id="daily"
+class="page">
+
+<div class="toolbar">
+
+<div>
+<h2>每日資產</h2>
+<div class="sub" id="dailyPersonText"></div>
+</div>
+
+<div class="filter-bar">
+
+<label style="margin:0;">年份</label>
+
+<select
+id="dailyYear"
+onchange="handleDailyYearChange()">
+</select>
+
+<label style="margin:0;">月份</label>
+
+<select
+id="dailyMonth"
+onchange="renderDaily()">
+</select>
+
+<button
+onclick="openDailyDialog()">
+＋新增
+</button>
+
+</div>
+
+</div>
+
+<table>
+
+<thead>
+
+<tr>
+<th>日期</th>
+<th>台股市值</th>
+<th>台股水位</th>
+<th>美股市值</th>
+<th>美股水位</th>
+<th>銀行帳戶</th>
+<th>今日交易總金額</th>
+<th>銀行帳戶 - 今日交易</th>
+<th>狀態</th>
+<th>金額</th>
+<th>總資產</th>
+<th>總水位</th>
+<th>增減</th>
+<th>操作</th>
+</tr>
+
+</thead>
+
+<tbody id="dailyBody"></tbody>
+
+</table>
+
+</section>
+
+
+<!-- 股票庫存 -->
+
+<section
+id="inventory"
+class="page">
+
+<div class="toolbar">
+
+<div>
+<h2>股票庫存</h2>
+<div class="sub" id="inventoryPersonText"></div>
+</div>
+
+<button
+onclick="openBaseDialog()">
+＋新增期初庫存
+</button>
+
+</div>
+
+<div class="person-context">
+目前庫存 = 期初庫存 + 此人員的交易紀錄
+</div>
+
+<table>
+
+<thead>
+
+<tr>
+<th>市場</th>
+<th>股票</th>
+<th>股數</th>
+<th>平均成本</th>
+<th>現價</th>
+<th>市值</th>
+<th>未實現損益</th>
+<th>報酬率</th>
+</tr>
+
+</thead>
+
+<tbody id="inventoryBody"></tbody>
+
+</table>
+
+
+<div class="toolbar">
+<h3>期初庫存</h3>
+</div>
+
+<table>
+
+<thead>
+
+<tr>
+<th>市場</th>
+<th>股票</th>
+<th>股數</th>
+<th>成本</th>
+<th>現價</th>
+<th>操作</th>
+</tr>
+
+</thead>
+
+<tbody id="baseBody"></tbody>
+
+</table>
+
+</section>
+
+
+<!-- 交易紀錄 -->
+
+<section
+id="trades"
+class="page">
+
+<div class="toolbar">
+
+<div>
+<h2>交易紀錄</h2>
+<div class="sub" id="tradePersonText"></div>
+</div>
+
+<div class="filter-bar">
+
+<label style="margin:0;">年份</label>
+
+<select
+id="tradeYear"
+onchange="handleTradeYearChange()">
+</select>
+
+<label style="margin:0;">月份</label>
+
+<select
+id="tradeMonth"
+onchange="renderTrades()">
+</select>
+
+<button
+onclick="openTradeDialog()">
+＋新增交易
+</button>
+
+</div>
+
+</div>
+
+<table>
+
+<thead>
+
+<tr>
+<th>日期</th>
+<th>市場</th>
+<th>股票</th>
+<th>買 / 賣</th>
+<th>股數</th>
+<th>價格</th>
+<th>備註</th>
+<th>操作</th>
+</tr>
+
+</thead>
+
+<tbody id="tradeBody"></tbody>
+
+</table>
+
+</section>
+
+
+<!-- 人員管理 -->
+
+<section
+id="persons"
+class="page">
+
+<div class="toolbar">
+
+<h2>人員管理</h2>
+
+<button
+onclick="personDialog.showModal()">
+＋新增人員
+</button>
+
+</div>
+
+<table>
+
+<thead>
+
+<tr>
+<th>姓名</th>
+<th>狀態</th>
+<th>建立時間</th>
+<th>操作</th>
+</tr>
+
+</thead>
+
+<tbody id="personBody"></tbody>
+
+</table>
+
+</section>
+
+</main>
+
+
+<!-- 人員 Dialog -->
+
+<dialog id="personDialog">
+
+<h3>新增人員</h3>
+
+<div class="form">
+
+<div>
+<label>人員姓名</label>
+<input id="pName">
+</div>
+
+<div>
+<label>狀態</label>
+
+<select id="pStatus">
+<option value="啟用">啟用</option>
+<option value="停用">停用</option>
+</select>
+</div>
+
+</div>
+
+<div class="actions">
+
+<button
+class="secondary"
+onclick="personDialog.close()">
+取消
+</button>
+
+<button
+onclick="savePerson()">
+儲存
+</button>
+
+</div>
+
+</dialog>
+
+
+<!-- 每日資產 Dialog -->
+
+<dialog id="dailyDialog">
+
+<h3 id="dailyDialogTitle">
+新增每日資產
+</h3>
+
+<div
+class="person-context"
+id="dailyDialogPersonText">
+</div>
+
+<input
+id="dailyID"
+type="hidden">
+
+<div class="form">
+
+<div>
+<label>日期</label>
+<input id="dailyDate" type="date">
+</div>
+
+<div>
+<label>台股庫存總市值</label>
+<input id="twStockValue" type="number" step="1">
+</div>
+
+<div>
+<label>台股水位 (%)</label>
+<input id="twPositionRate" type="number" step="0.01">
+</div>
+
+<div>
+<label>美股庫存總市值 (USD)</label>
+<input id="usStockValue" type="number" step="0.01">
+</div>
+
+<div>
+<label>美股水位 (%)</label>
+<input id="usPositionRate" type="number" step="0.01">
+</div>
+
+<div>
+<label>銀行帳戶金額</label>
+<input id="bankBalance" type="number" step="1">
+</div>
+
+<div>
+<label>今日交易總金額</label>
+<input id="todayTradeAmount" type="number" step="1">
+</div>
+
+<div class="full">
+<label>銀行帳戶 - 今日交易總金額</label>
+<input id="bankAfterTradePreview" type="number" step="1" readonly>
+</div>
+
+<div>
+<label>資金狀態</label>
+
+<select id="adjustmentType">
+<option value="可佈局">可佈局</option>
+<option value="調節">調節</option>
+</select>
+
+</div>
+
+<div class="full">
+<label>可佈局 / 調節金額</label>
+<input id="adjustmentAmount" type="number" step="1">
+</div>
+
+</div>
+
+<div class="actions">
+
+<button
+class="secondary"
+onclick="dailyDialog.close()">
+取消
+</button>
+
+<button
+onclick="saveDaily()">
+儲存
+</button>
+
+</div>
+
+</dialog>
+
+
+<!-- 期初庫存 Dialog -->
+
+<dialog id="baseDialog">
+
+<h3>新增期初庫存</h3>
+
+<div
+class="person-context"
+id="baseDialogPersonText">
+</div>
+
+<div class="form">
+
+<div>
+<label>市場</label>
+<select id="baseMarket">
+<option value="TW">台股</option>
+<option value="US">美股</option>
+</select>
+</div>
+
+<div>
+<label>股票代號</label>
+<input id="baseCode" type="text">
+</div>
+
+<div>
+<label>股票名稱</label>
+<input id="baseName">
+</div>
+
+<div>
+<label>股數</label>
+<input id="baseQty" type="number" step="0.0001">
+</div>
+
+<div>
+<label>平均成本</label>
+<input id="baseCost" type="number" step="0.01">
+</div>
+
+<div>
+<label>現價</label>
+<input id="basePrice" type="number" step="0.01">
+</div>
+
+</div>
+
+<div class="actions">
+
+<button
+class="secondary"
+onclick="baseDialog.close()">
+取消
+</button>
+
+<button
+onclick="saveBaseInventory()">
+儲存
+</button>
+
+</div>
+
+</dialog>
+
+
+<!-- 交易 Dialog -->
+
+<dialog id="tradeDialog">
+
+<h3 id="tradeDialogTitle">
+新增交易
+</h3>
+
+<div
+class="person-context"
+id="tradeDialogPersonText">
+</div>
+
+<input
+id="tradeID"
+type="hidden">
+
+<div class="form">
+
+<div>
+<label>日期</label>
+<input id="tradeDate" type="date">
+</div>
+
+<div>
+<label>市場</label>
+
+<select id="tradeMarket">
+<option value="TW">台股</option>
+<option value="US">美股</option>
+</select>
+
+</div>
+
+<div>
+<label>股票代號</label>
+
+<input
+id="tradeCode"
+type="text"
+placeholder="0050 / 00878 / NVDA">
+
+</div>
+
+<div>
+<label>買 / 賣</label>
+
+<select id="tradeType">
+<option value="買進">買進</option>
+<option value="賣出">賣出</option>
+</select>
+
+</div>
+
+<div>
+<label>股數</label>
+<input id="tradeQty" type="number" step="0.0001">
+</div>
+
+<div>
+<label>成交價</label>
+<input id="tradePrice" type="number" step="0.01">
+</div>
+
+<div class="full">
+<label>備註</label>
+<input id="tradeNote">
+</div>
+
+</div>
+
+<div class="actions">
+
+<button
+class="secondary"
+onclick="tradeDialog.close()">
+取消
+</button>
+
+<button
+onclick="saveTrade()">
+儲存
+</button>
+
+</div>
+
+</dialog>
+
+
+<script>
+
+const API_URL =
+'https://script.google.com/macros/s/AKfycbzyooHTwpskMzdLOd6QQUA7FczSoUP-GGyqUa2Zlyos-6cH1Fb5mDKmvHdbpEJjQYoH/exec';
+
+let state = {
+  persons: [],
+  daily: [],
+  baseInventory: [],
+  trades: [],
+  inventory: []
+};
+
+let assetChart;
+
+
+const esc = s =>
+  String(s ?? '')
+    .replace(
+      /[&<>'"]/g,
+      c => ({
+        '&':'&amp;',
+        '<':'&lt;',
+        '>':'&gt;',
+        "'":'&#39;',
+        '"':'&quot;'
+      }[c])
+    );
+
+
+const fmtTWD = n =>
+  'NT$ ' +
+  Math.round(
+    Number(n || 0)
+  ).toLocaleString('zh-TW');
+
+
+const fmtUSD = n =>
+  'US$ ' +
+  Number(n || 0)
+    .toLocaleString(
+      'zh-TW',
+      {
+        maximumFractionDigits: 2
+      }
+    );
+
+
+function showPage(id, btn) {
+  document
+    .querySelectorAll('.page')
+    .forEach(
+      x =>
+        x.classList.remove('active')
+    );
+
+  document
+    .querySelectorAll('.tabs button')
+    .forEach(
+      x =>
+        x.classList.remove('active')
+    );
+
+  document
+    .getElementById(id)
+    .classList.add('active');
+
+  btn.classList.add('active');
+}
+
+
+async function apiGet(action) {
+  const response =
+    await fetch(
+      API_URL +
+      '?action=' +
+      encodeURIComponent(action)
+    );
+
+  return await response.json();
+}
+
+
+async function apiPost(payload) {
+  const response =
+    await fetch(
+      API_URL,
+      {
+        method: 'POST',
+
+        headers: {
+          'Content-Type':
+            'text/plain;charset=utf-8'
+        },
+
+        body:
+          JSON.stringify(payload)
+      }
+    );
+
+  return await response.json();
+}
+
+
+function activePersons() {
+  return state.persons.filter(
+    x =>
+      String(x.Status) ===
+      '啟用'
+  );
+}
+
+
+function selectedPersonID() {
+  return currentPerson.value;
+}
+
+
+function selectedPerson() {
+  return state.persons.find(
+    x =>
+      String(x.ID) ===
+      String(selectedPersonID())
+  );
+}
+
+
+function byPerson(rows) {
+  const id =
+    selectedPersonID();
+
+  return rows.filter(
+    x =>
+      String(x.PersonID || '') ===
+      String(id)
+  );
+}
+
+
+function ensurePerson() {
+  if (!selectedPersonID()) {
+    alert(
+      '請先新增並選擇一位啟用中的人員'
+    );
+
+    return false;
+  }
+
+  return true;
+}
+
+
+async function loadAll() {
+  try {
+    const res =
+      await apiGet('getAll');
+
+    if (!res.success) {
+      throw new Error(
+        res.message
+      );
+    }
+
+    state.persons =
+      res.persons || [];
+
+    state.daily =
+      res.daily || [];
+
+    state.baseInventory =
+      res.baseInventory || [];
+
+    state.trades =
+      res.trades || [];
+
+    state.inventory =
+      res.inventory || [];
+
+    const previous =
+      currentPerson.value;
+
+    currentPerson.innerHTML =
+      activePersons()
+        .map(
+          p =>
+            `<option value="${esc(p.ID)}">${esc(p.Name)}</option>`
+        )
+        .join('');
+
+    if (
+      previous &&
+      [...currentPerson.options]
+        .some(
+          x =>
+            x.value === previous
+        )
+    ) {
+      currentPerson.value =
+        previous;
+    }
+
+    renderAll();
+
+  } catch (err) {
+    console.error(err);
+
+    alert(
+      '讀取資料失敗：' +
+      err.message
+    );
+  }
+}
+
+
+
+function getDateParts(dateValue) {
+  const text = String(dateValue || '');
+
+  if (!/^\d{4}-\d{2}-\d{2}/.test(text)) {
+    return {
+      year: '',
+      month: ''
+    };
+  }
+
+  return {
+    year: text.slice(0, 4),
+    month: text.slice(5, 7)
+  };
+}
+
+
+function getYearsFromRows(rows) {
+  return [...new Set(
+    rows
+      .map(row => getDateParts(row.Date).year)
+      .filter(Boolean)
+  )]
+    .sort((a, b) => Number(b) - Number(a));
+}
+
+
+function buildYearSelect(selectEl, rows, preserveValue = true) {
+  if (!selectEl) return;
+
+  const oldValue =
+    preserveValue
+      ? selectEl.value
+      : '';
+
+  const years =
+    getYearsFromRows(rows);
+
+  selectEl.innerHTML =
+    '<option value="">全部年份</option>' +
+    years
+      .map(
+        year =>
+          `<option value="${year}">${year}年</option>`
+      )
+      .join('');
+
+  if (
+    oldValue &&
+    years.includes(oldValue)
+  ) {
+    selectEl.value =
+      oldValue;
+  }
+}
+
+
+function buildMonthSelect(selectEl, preserveValue = true) {
+  if (!selectEl) return;
+
+  const oldValue =
+    preserveValue
+      ? selectEl.value
+      : '';
+
+  selectEl.innerHTML =
+    '<option value="">全部月份</option>' +
+    Array.from(
+      { length: 12 },
+      (_, index) => {
+        const month =
+          String(index + 1).padStart(2, '0');
+
+        return `<option value="${month}">${index + 1}月</option>`;
+      }
+    )
+      .join('');
+
+  if (oldValue) {
+    selectEl.value =
+      oldValue;
+  }
+}
+
+
+function refreshFilterOptions() {
+  const dailyRows =
+    byPerson(state.daily);
+
+  const tradeRows =
+    byPerson(state.trades);
+
+  buildYearSelect(
+    dashboardYear,
+    dailyRows
+  );
+
+  buildYearSelect(
+    dailyYear,
+    dailyRows
+  );
+
+  buildMonthSelect(
+    dailyMonth
+  );
+
+  buildYearSelect(
+    tradeYear,
+    tradeRows
+  );
+
+  buildMonthSelect(
+    tradeMonth
+  );
+}
+
+
+function filterRowsByYearMonth(
+  rows,
+  year,
+  month
+) {
+  return rows.filter(row => {
+    const parts =
+      getDateParts(row.Date);
+
+    if (
+      year &&
+      parts.year !== year
+    ) {
+      return false;
+    }
+
+    if (
+      month &&
+      parts.month !== month
+    ) {
+      return false;
+    }
+
+    return true;
+  });
+}
+
+
+function handleDailyYearChange() {
+  renderDaily();
+}
+
+
+function handleTradeYearChange() {
+  renderTrades();
+}
+
+
+
+function renderAll() {
+  const person =
+    selectedPerson();
+
+  const personName =
+    person
+      ? person.Name
+      : '尚未選擇人員';
+
+  dashboardPersonText.textContent =
+    '目前人員：' + personName;
+
+  dailyPersonText.textContent =
+    '目前人員：' + personName;
+
+  inventoryPersonText.textContent =
+    '目前人員：' + personName;
+
+  tradePersonText.textContent =
+    '目前人員：' + personName;
+
+  refreshFilterOptions();
+
+  renderDashboard();
+  renderDaily();
+  renderInventory();
+  renderTrades();
+  renderPersons();
+}
+
+
+/* =========================================================
+ * Dashboard
+ * ========================================================= */
+
+function renderDashboard() {
+  const selectedYear =
+    dashboardYear.value || '';
+
+  const rows =
+    filterRowsByYearMonth(
+      byPerson(state.daily),
+      selectedYear,
+      ''
+    )
+      .filter(
+        x => x.Date
+      )
+      .sort(
+        (a,b) =>
+          String(a.Date)
+            .localeCompare(
+              String(b.Date)
+            )
+      );
+
+  if (!rows.length) {
+    dTotal.textContent =
+      'NT$ 0';
+
+    dTotalPosition.textContent =
+      '0%';
+
+    dTW.textContent =
+      'NT$ 0';
+
+    dTWPosition.textContent =
+      '水位 0%';
+
+    dUS.textContent =
+      'US$ 0';
+
+    dUSPosition.textContent =
+      '水位 0%';
+
+    dBank.textContent =
+      'NT$ 0';
+
+    dTodayTrade.textContent =
+      'NT$ 0';
+
+    dBankAfterTrade.textContent =
+      'NT$ 0';
+
+    dAdjustmentLabel.textContent =
+      '可佈局 / 調節';
+
+    dAdjustment.textContent =
+      'NT$ 0';
+
+    if (assetChart) {
+      assetChart.destroy();
+      assetChart = null;
+    }
+
+    return;
+  }
+
+  const latest =
+    rows[
+      rows.length - 1
+    ];
+
+  dTotal.textContent =
+    fmtTWD(
+      latest.TotalAsset
+    );
+
+  dTotalPosition.textContent =
+    Number(
+      latest.TotalPositionRate || 0
+    ).toFixed(2)
+    + '%';
+
+  dTW.textContent =
+    fmtTWD(
+      latest.TWStockValue
+    );
+
+  dTWPosition.textContent =
+    '水位 ' +
+    Number(
+      latest.TWPositionRate || 0
+    ).toFixed(2)
+    + '%';
+
+  dUS.textContent =
+    fmtUSD(
+      latest.USStockValue
+    );
+
+  dUSPosition.textContent =
+    '水位 ' +
+    Number(
+      latest.USPositionRate || 0
+    ).toFixed(2)
+    + '%';
+
+  dBank.textContent =
+    fmtTWD(
+      latest.BankBalance
+    );
+
+  dTodayTrade.textContent =
+    fmtTWD(
+      latest.TodayTradeAmount
+    );
+
+  dBankAfterTrade.textContent =
+    fmtTWD(
+      latest.BankAfterTrade
+    );
+
+  dAdjustmentLabel.textContent =
+    latest.AdjustmentType ||
+    '可佈局 / 調節';
+
+  dAdjustment.textContent =
+    fmtTWD(
+      latest.AdjustmentAmount
+    );
+
+  if (assetChart) {
+    assetChart.destroy();
+  }
+
+  assetChart =
+    new Chart(
+      document
+        .getElementById(
+          'assetChart'
+        ),
+      {
+        type:'line',
+
+        data:{
+          labels:
+            rows.map(
+              x => x.Date
+            ),
+
+          datasets:[
+            {
+              label:'總資產',
+
+              data:
+                rows.map(
+                  x =>
+                    Number(
+                      x.TotalAsset || 0
+                    )
+                ),
+
+              tension:.3
+            },
+
+            {
+              label:'台股市值',
+
+              data:
+                rows.map(
+                  x =>
+                    Number(
+                      x.TWStockValue || 0
+                    )
+                ),
+
+              tension:.3
+            }
+          ]
+        },
+
+        options:{
+          responsive:true,
+          maintainAspectRatio:false
+        }
+      }
+    );
+}
+
+
+/* =========================================================
+ * 每日資產
+ * ========================================================= */
+
+function renderDaily() {
+  const selectedYear =
+    dailyYear.value || '';
+
+  const selectedMonth =
+    dailyMonth.value || '';
+
+  const rows =
+    filterRowsByYearMonth(
+      byPerson(state.daily),
+      selectedYear,
+      selectedMonth
+    )
+      .sort(
+        (a,b) =>
+          String(
+            b.Date || ''
+          )
+            .localeCompare(
+              String(
+                a.Date || ''
+              )
+            )
+      );
+
+  if (!rows.length) {
+    dailyBody.innerHTML =
+      '<tr><td colspan="14" class="empty">此篩選條件下沒有每日資產</td></tr>';
+
+    return;
+  }
+
+  dailyBody.innerHTML =
+    rows
+      .map(
+        r =>
+          `
+          <tr>
+
+          <td>
+          ${esc(r.Date)}
+          </td>
+
+          <td>
+          ${fmtTWD(r.TWStockValue)}
+          </td>
+
+          <td>
+          ${Number(r.TWPositionRate || 0).toFixed(2)}%
+          </td>
+
+          <td>
+          ${fmtUSD(r.USStockValue)}
+          </td>
+
+          <td>
+          ${Number(r.USPositionRate || 0).toFixed(2)}%
+          </td>
+
+          <td>
+          ${fmtTWD(r.BankBalance)}
+          </td>
+
+          <td>
+          ${fmtTWD(r.TodayTradeAmount)}
+          </td>
+
+          <td>
+          ${fmtTWD(r.BankAfterTrade)}
+          </td>
+
+          <td>
+          ${esc(r.AdjustmentType)}
+          </td>
+
+          <td>
+          ${fmtTWD(r.AdjustmentAmount)}
+          </td>
+
+          <td>
+          <b>
+          ${fmtTWD(r.TotalAsset)}
+          </b>
+          </td>
+
+          <td>
+          ${Number(r.TotalPositionRate || 0).toFixed(2)}%
+          </td>
+
+          <td
+          class="${
+            Number(r.DailyChange || 0) >= 0
+              ? 'up'
+              : 'down'
+          }">
+
+          ${
+            Number(r.DailyChange || 0) >= 0
+              ? '+'
+              : ''
+          }
+
+          ${Math.round(
+            Number(
+              r.DailyChange || 0
+            )
+          ).toLocaleString()}
+
+          </td>
+
+          <td>
+
+          <button
+          class="small secondary"
+          onclick="editDaily('${esc(r.ID)}')">
+          修改
+          </button>
+
+          <button
+          class="small danger"
+          onclick="deleteDaily('${esc(r.ID)}')">
+          刪除
+          </button>
+
+          </td>
+
+          </tr>
+          `
+      )
+      .join('');
+}
+
+
+function openDailyDialog() {
+  if (!ensurePerson()) {
+    return;
+  }
+
+  const person =
+    selectedPerson();
+
+  dailyDialogPersonText.textContent =
+    '目前人員：' +
+    person.Name;
+
+  dailyID.value =
+    '';
+
+  dailyDialogTitle.textContent =
+    '新增每日資產';
+
+  dailyDate.value =
+    new Date()
+      .toISOString()
+      .slice(0,10);
+
+  twStockValue.value =
+    0;
+
+  twPositionRate.value =
+    0;
+
+  usStockValue.value =
+    0;
+
+  usPositionRate.value =
+    0;
+
+  bankBalance.value =
+    0;
+
+  todayTradeAmount.value =
+    0;
+
+  bankAfterTradePreview.value =
+    0;
+
+  adjustmentType.value =
+    '可佈局';
+
+  adjustmentAmount.value =
+    0;
+
+  dailyDialog.showModal();
+}
+
+
+function editDaily(id) {
+  const row =
+    state.daily.find(
+      x =>
+        String(x.ID) ===
+        String(id)
+    );
+
+  if (!row) {
+    return;
+  }
+
+  const person =
+    selectedPerson();
+
+  dailyDialogPersonText.textContent =
+    '目前人員：' +
+    person.Name;
+
+  dailyID.value =
+    row.ID;
+
+  dailyDialogTitle.textContent =
+    '修改每日資產';
+
+  dailyDate.value =
+    row.Date || '';
+
+  twStockValue.value =
+    row.TWStockValue || 0;
+
+  twPositionRate.value =
+    row.TWPositionRate || 0;
+
+  usStockValue.value =
+    row.USStockValue || 0;
+
+  usPositionRate.value =
+    row.USPositionRate || 0;
+
+  bankBalance.value =
+    row.BankBalance || 0;
+
+  todayTradeAmount.value =
+    row.TodayTradeAmount || 0;
+
+  bankAfterTradePreview.value =
+    row.BankAfterTrade || 0;
+
+  adjustmentType.value =
+    row.AdjustmentType ||
+    '可佈局';
+
+  adjustmentAmount.value =
+    row.AdjustmentAmount || 0;
+
+  dailyDialog.showModal();
+}
+
+
+async function saveDaily() {
+  if (!ensurePerson()) {
+    return;
+  }
+
+  const data = {
+    ID:
+      dailyID.value || '',
+
+    PersonID:
+      selectedPersonID(),
+
+    Date:
+      dailyDate.value,
+
+    TWStockValue:
+      +twStockValue.value || 0,
+
+    TWPositionRate:
+      +twPositionRate.value || 0,
+
+    USStockValue:
+      +usStockValue.value || 0,
+
+    USPositionRate:
+      +usPositionRate.value || 0,
+
+    BankBalance:
+      +bankBalance.value || 0,
+
+    TodayTradeAmount:
+      +todayTradeAmount.value || 0,
+
+    AdjustmentType:
+      adjustmentType.value,
+
+    AdjustmentAmount:
+      +adjustmentAmount.value || 0
+  };
+
+  const res =
+    await apiPost({
+      action:
+        dailyID.value
+          ? 'updateDaily'
+          : 'saveDaily',
+
+      data
+    });
+
+  if (!res.success) {
+    return alert(
+      res.message
+    );
+  }
+
+  dailyDialog.close();
+
+  await loadAll();
+}
+
+
+async function deleteDaily(id) {
+  if (
+    !confirm(
+      '確定刪除這筆每日資產？'
+    )
+  ) {
+    return;
+  }
+
+  const res =
+    await apiPost({
+      action:
+        'deleteDaily',
+
+      id
+    });
+
+  if (!res.success) {
+    return alert(
+      res.message
+    );
+  }
+
+  await loadAll();
+}
+
+
+/* =========================================================
+ * 股票庫存
+ * ========================================================= */
+
+function renderInventory() {
+  const rows =
+    byPerson(
+      state.inventory
+    );
+
+  if (!rows.length) {
+    inventoryBody.innerHTML =
+      '<tr><td colspan="8" class="empty">目前沒有庫存</td></tr>';
+
+  } else {
+    inventoryBody.innerHTML =
+      rows
+        .map(
+          r =>
+            `
+            <tr>
+
+            <td>
+            ${
+              r.Market === 'US'
+                ? '美股'
+                : '台股'
+            }
+            </td>
+
+            <td>
+            <b>${esc(r.StockCode)}</b>
+            ${esc(r.StockName)}
+            </td>
+
+            <td>
+            ${Number(r.Quantity || 0).toLocaleString()}
+            </td>
+
+            <td>
+            ${Number(r.AverageCost || 0).toLocaleString()}
+            </td>
+
+            <td>
+            ${Number(r.CurrentPrice || 0).toLocaleString()}
+            </td>
+
+            <td>
+            ${Number(r.MarketValue || 0).toLocaleString()}
+            </td>
+
+            <td
+            class="${
+              Number(r.UnrealizedProfit || 0) >= 0
+                ? 'up'
+                : 'down'
+            }">
+
+            ${Number(r.UnrealizedProfit || 0).toLocaleString()}
+
+            </td>
+
+            <td>
+            ${Number(r.ReturnRate || 0).toFixed(2)}%
+            </td>
+
+            </tr>
+            `
+        )
+        .join('');
+  }
+
+  const bases =
+    byPerson(
+      state.baseInventory
+    );
+
+  if (!bases.length) {
+    baseBody.innerHTML =
+      '<tr><td colspan="6" class="empty">尚無期初庫存</td></tr>';
+
+    return;
+  }
+
+  baseBody.innerHTML =
+    bases
+      .map(
+        r =>
+          `
+          <tr>
+
+          <td>
+          ${
+            r.Market === 'US'
+              ? '美股'
+              : '台股'
+          }
+          </td>
+
+          <td>
+          <b>${esc(r.StockCode)}</b>
+          </td>
+
+          <td>
+          ${Number(r.Quantity || 0).toLocaleString()}
+          </td>
+
+          <td>
+          ${Number(r.AverageCost || 0).toLocaleString()}
+          </td>
+
+          <td>
+          ${Number(r.CurrentPrice || 0).toLocaleString()}
+          </td>
+
+          <td>
+
+          <button
+          class="small danger"
+          onclick="deleteBase('${esc(r.ID)}')">
+          刪除
+          </button>
+
+          </td>
+
+          </tr>
+          `
+      )
+      .join('');
+}
+
+
+function openBaseDialog() {
+  if (!ensurePerson()) {
+    return;
+  }
+
+  const person =
+    selectedPerson();
+
+  baseDialogPersonText.textContent =
+    '目前人員：' +
+    person.Name;
+
+  baseMarket.value =
+    'TW';
+
+  baseCode.value =
+    '';
+
+  baseName.value =
+    '';
+
+  baseQty.value =
+    '';
+
+  baseCost.value =
+    '';
+
+  basePrice.value =
+    '';
+
+  baseDialog.showModal();
+}
+
+
+async function saveBaseInventory() {
+  if (!ensurePerson()) {
+    return;
+  }
+
+  if (
+    !baseCode.value.trim()
+  ) {
+    return alert(
+      '請輸入股票代號'
+    );
+  }
+
+  const res =
+    await apiPost({
+      action:
+        'saveBaseInventory',
+
+      data:{
+        PersonID:
+          selectedPersonID(),
+
+        Market:
+          baseMarket.value,
+
+        StockCode:
+          baseCode.value
+            .trim()
+            .toUpperCase(),
+
+        StockName:
+          baseName.value.trim(),
+
+        Quantity:
+          +baseQty.value || 0,
+
+        AverageCost:
+          +baseCost.value || 0,
+
+        CurrentPrice:
+          +basePrice.value || 0
+      }
+    });
+
+  if (!res.success) {
+    return alert(
+      res.message
+    );
+  }
+
+  baseDialog.close();
+
+  await loadAll();
+}
+
+
+async function deleteBase(id) {
+  if (
+    !confirm(
+      '確定刪除這筆期初庫存？'
+    )
+  ) {
+    return;
+  }
+
+  const res =
+    await apiPost({
+      action:
+        'deleteBaseInventory',
+
+      id
+    });
+
+  if (!res.success) {
+    return alert(
+      res.message
+    );
+  }
+
+  await loadAll();
+}
+
+
+/* =========================================================
+ * 交易紀錄
+ * ========================================================= */
+
+function renderTrades() {
+  const selectedYear =
+    tradeYear.value || '';
+
+  const selectedMonth =
+    tradeMonth.value || '';
+
+  const rows =
+    filterRowsByYearMonth(
+      byPerson(
+        state.trades
+      ),
+      selectedYear,
+      selectedMonth
+    )
+      .sort(
+        (a,b) =>
+          String(
+            b.Date || ''
+          )
+            .localeCompare(
+              String(
+                a.Date || ''
+              )
+            )
+      );
+
+  if (!rows.length) {
+    tradeBody.innerHTML =
+      '<tr><td colspan="8" class="empty">此篩選條件下沒有交易紀錄</td></tr>';
+
+    return;
+  }
+
+  tradeBody.innerHTML =
+    rows
+      .map(
+        r =>
+          `
+          <tr>
+
+          <td>
+          ${esc(r.Date)}
+          </td>
+
+          <td>
+          ${
+            r.Market === 'US'
+              ? '美股'
+              : '台股'
+          }
+          </td>
+
+          <td>
+          <b>${esc(r.StockCode)}</b>
+          </td>
+
+          <td>
+          ${esc(r.TradeType)}
+          </td>
+
+          <td>
+          ${Number(r.Quantity || 0).toLocaleString()}
+          </td>
+
+          <td>
+          ${Number(r.Price || 0).toLocaleString()}
+          </td>
+
+          <td>
+          ${esc(r.Note || '')}
+          </td>
+
+          <td>
+
+          <button
+          class="small secondary"
+          onclick="editTrade('${esc(r.ID)}')">
+          修改
+          </button>
+
+          <button
+          class="small danger"
+          onclick="deleteTrade('${esc(r.ID)}')">
+          刪除
+          </button>
+
+          </td>
+
+          </tr>
+          `
+      )
+      .join('');
+}
+
+
+function openTradeDialog() {
+  if (!ensurePerson()) {
+    return;
+  }
+
+  const person =
+    selectedPerson();
+
+  tradeDialogPersonText.textContent =
+    '目前人員：' +
+    person.Name;
+
+  tradeID.value =
+    '';
+
+  tradeDialogTitle.textContent =
+    '新增交易';
+
+  tradeDate.value =
+    new Date()
+      .toISOString()
+      .slice(0,10);
+
+  tradeMarket.value =
+    'TW';
+
+  tradeCode.value =
+    '';
+
+  tradeType.value =
+    '買進';
+
+  tradeQty.value =
+    '';
+
+  tradePrice.value =
+    '';
+
+  tradeNote.value =
+    '';
+
+  tradeDialog.showModal();
+}
+
+
+function editTrade(id) {
+  const row =
+    state.trades.find(
+      x =>
+        String(x.ID) ===
+        String(id)
+    );
+
+  if (!row) {
+    return;
+  }
+
+  const person =
+    selectedPerson();
+
+  tradeDialogPersonText.textContent =
+    '目前人員：' +
+    person.Name;
+
+  tradeID.value =
+    row.ID;
+
+  tradeDialogTitle.textContent =
+    '修改交易';
+
+  tradeDate.value =
+    row.Date || '';
+
+  tradeMarket.value =
+    row.Market || 'TW';
+
+  tradeCode.value =
+    row.StockCode || '';
+
+  tradeType.value =
+    row.TradeType || '買進';
+
+  tradeQty.value =
+    row.Quantity || 0;
+
+  tradePrice.value =
+    row.Price || 0;
+
+  tradeNote.value =
+    row.Note || '';
+
+  tradeDialog.showModal();
+}
+
+
+async function saveTrade() {
+  if (!ensurePerson()) {
+    return;
+  }
+
+  if (
+    !tradeCode.value.trim()
+  ) {
+    return alert(
+      '請輸入股票代號'
+    );
+  }
+
+  const data = {
+    ID:
+      tradeID.value || '',
+
+    PersonID:
+      selectedPersonID(),
+
+    Date:
+      tradeDate.value,
+
+    Market:
+      tradeMarket.value,
+
+    StockCode:
+      tradeCode.value
+        .trim()
+        .toUpperCase(),
+
+    TradeType:
+      tradeType.value,
+
+    Quantity:
+      +tradeQty.value || 0,
+
+    Price:
+      +tradePrice.value || 0,
+
+    RealizedProfit:
+      0,
+
+    Reason:
+      '',
+
+    Note:
+      tradeNote.value.trim()
+  };
+
+  const res =
+    await apiPost({
+      action:
+        tradeID.value
+          ? 'updateTrade'
+          : 'saveTrade',
+
+      data
+    });
+
+  if (!res.success) {
+    return alert(
+      res.message
+    );
+  }
+
+  tradeDialog.close();
+
+  await loadAll();
+}
+
+
+async function deleteTrade(id) {
+  if (
+    !confirm(
+      '確定刪除這筆交易？庫存會重新計算。'
+    )
+  ) {
+    return;
+  }
+
+  const res =
+    await apiPost({
+      action:
+        'deleteTrade',
+
+      id
+    });
+
+  if (!res.success) {
+    return alert(
+      res.message
+    );
+  }
+
+  await loadAll();
+}
+
+
+/* =========================================================
+ * 人員管理
+ * ========================================================= */
+
+function renderPersons() {
+  if (!state.persons.length) {
+    personBody.innerHTML =
+      '<tr><td colspan="4" class="empty">尚無人員</td></tr>';
+
+    return;
+  }
+
+  personBody.innerHTML =
+    state.persons
+      .map(
+        p => {
+          const enabled =
+            String(
+              p.Status
+            ) ===
+            '啟用';
+
+          return `
+          <tr>
+
+          <td>
+          <b>${esc(p.Name)}</b>
+          </td>
+
+          <td>
+          ${esc(p.Status)}
+          </td>
+
+          <td>
+          ${esc(p.CreateTime)}
+          </td>
+
+          <td>
+
+          <button
+          class="small secondary"
+          onclick="togglePerson(
+          '${esc(p.ID)}',
+          '${enabled ? '停用' : '啟用'}'
+          )">
+
+          ${enabled ? '停用' : '啟用'}
+
+          </button>
+
+          </td>
+
+          </tr>
+          `;
+        }
+      )
+      .join('');
+}
+
+
+async function savePerson() {
+  const name =
+    pName.value.trim();
+
+  if (!name) {
+    return alert(
+      '請輸入姓名'
+    );
+  }
+
+  const res =
+    await apiPost({
+      action:
+        'savePerson',
+
+      data:{
+        Name:
+          name,
+
+        Status:
+          pStatus.value
+      }
+    });
+
+  if (!res.success) {
+    return alert(
+      res.message
+    );
+  }
+
+  personDialog.close();
+
+  pName.value =
+    '';
+
+  await loadAll();
+}
+
+
+async function togglePerson(id, status) {
+  const res =
+    await apiPost({
+      action:
+        'togglePerson',
+
+      id,
+      status
+    });
+
+  if (!res.success) {
+    return alert(
+      res.message
+    );
+  }
+
+  await loadAll();
+}
+
+
+
+function updateBankAfterTradePreview() {
+  const bank = +bankBalance.value || 0;
+  const trade = +todayTradeAmount.value || 0;
+
+  bankAfterTradePreview.value =
+    bank - trade;
+}
+
+bankBalance.addEventListener(
+  'input',
+  updateBankAfterTradePreview
+);
+
+todayTradeAmount.addEventListener(
+  'input',
+  updateBankAfterTradePreview
+);
+
+loadAll();
+
+</script>
+
+</body>
+</html>
