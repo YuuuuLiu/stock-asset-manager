@@ -320,6 +320,11 @@ select{
   }
 }
 
+
+.market-us-only.is-hidden{
+  display:none !important;
+}
+
 @media(max-width:1000px){
   .cards{
     grid-template-columns:1fr 1fr;
@@ -433,7 +438,7 @@ onchange="renderDashboard()">
 
 </div>
 
-<div class="person-context">
+<div class="person-context market-us-only">
 美股以 USD 獨立顯示；總資產與總持股水位僅以台幣資產（台股 + 銀行帳戶）計算。
 </div>
 
@@ -455,7 +460,7 @@ onchange="renderDashboard()">
 <div class="sub" id="dTWPosition">水位 0%</div>
 </div>
 
-<div class="card">
+<div class="card market-us-only">
 <div class="label">美股</div>
 <div class="value" id="dUS">US$ 0</div>
 <div class="sub" id="dUSPosition">水位 0%</div>
@@ -541,11 +546,11 @@ class="page">
 <th>日期</th>
 <th>台股市值</th>
 <th>台股水位</th>
-<th>美股市值</th>
-<th>美股水位</th>
+<th class="market-us-only">美股市值</th>
+<th class="market-us-only">美股水位</th>
 <th>銀行帳戶</th>
 <th>今日交易總金額</th>
-<th>銀行帳戶 - 今日交易</th>
+<th>銀行帳戶（扣除今日交易金額）</th>
 <th>狀態</th>
 <th>金額</th>
 <th>總資產</th>
@@ -719,6 +724,7 @@ onclick="openPersonDialog()">
 
 <tr>
 <th>姓名</th>
+<th>市場別</th>
 <th>狀態</th>
 <th>建立時間</th>
 <th>操作</th>
@@ -748,6 +754,17 @@ onclick="openPersonDialog()">
 <div>
 <label>人員姓名</label>
 <input id="pName">
+</div>
+
+<div>
+<label>市場別</label>
+
+<select id="pMarketScope">
+<option value="台股">台股</option>
+<option value="美股">美股</option>
+<option value="台/美股">台 / 美股</option>
+</select>
+
 </div>
 
 <div>
@@ -813,12 +830,12 @@ type="hidden">
 <input id="twPositionRate" type="number" step="0.01">
 </div>
 
-<div>
+<div class="market-us-only">
 <label>美股庫存總市值 (USD)</label>
 <input id="usStockValue" type="number" step="0.01">
 </div>
 
-<div>
+<div class="market-us-only">
 <label>美股水位 (%)</label>
 <input id="usPositionRate" type="number" step="0.01">
 </div>
@@ -834,7 +851,7 @@ type="hidden">
 </div>
 
 <div class="full">
-<label>銀行帳戶 - 今日交易總金額</label>
+<label>銀行帳戶（扣除今日交易金額）總金額</label>
 <input id="bankAfterTradePreview" type="number" step="1" readonly>
 </div>
 
@@ -1399,6 +1416,44 @@ function handleTradeYearChange() {
 
 
 
+
+function currentPersonHasUSMarket() {
+  const person =
+    selectedPerson();
+
+  if (!person) {
+    return false;
+  }
+
+  const scope =
+    person.MarketScope ||
+    '台/美股';
+
+  return (
+    scope === '美股' ||
+    scope === '台/美股'
+  );
+}
+
+
+function updateMarketVisibility() {
+  const showUS =
+    currentPersonHasUSMarket();
+
+  document
+    .querySelectorAll(
+      '.market-us-only'
+    )
+    .forEach(el => {
+      el.classList.toggle(
+        'is-hidden',
+        !showUS
+      );
+    });
+}
+
+
+
 function renderAll() {
   const person =
     selectedPerson();
@@ -1421,6 +1476,8 @@ function renderAll() {
     '目前人員：' + personName;
 
   refreshFilterOptions();
+
+  updateMarketVisibility();
 
   renderDashboard();
   renderDaily();
@@ -1650,8 +1707,13 @@ function renderDaily() {
       );
 
   if (!rows.length) {
+    const colspan =
+      currentPersonHasUSMarket()
+        ? 14
+        : 12;
+
     dailyBody.innerHTML =
-      '<tr><td colspan="14" class="empty">此篩選條件下沒有每日資產</td></tr>';
+      `<tr><td colspan="${colspan}" class="empty">此篩選條件下沒有每日資產</td></tr>`;
 
     return;
   }
@@ -1675,11 +1737,11 @@ function renderDaily() {
           ${Number(r.TWPositionRate || 0).toFixed(2)}%
           </td>
 
-          <td>
+          <td class="market-us-only">
           ${fmtUSD(r.USStockValue)}
           </td>
 
-          <td>
+          <td class="market-us-only">
           ${Number(r.USPositionRate || 0).toFixed(2)}%
           </td>
 
@@ -1769,6 +1831,8 @@ function openDailyDialog() {
     '目前人員：' +
     person.Name;
 
+  updateMarketVisibility();
+
   dailyID.value =
     '';
 
@@ -1829,6 +1893,8 @@ function editDaily(id) {
   dailyDialogPersonText.textContent =
     '目前人員：' +
     person.Name;
+
+  updateMarketVisibility();
 
   dailyID.value =
     row.ID;
@@ -2092,6 +2158,47 @@ function renderInventory() {
 }
 
 
+
+function getAllowedMarketsForCurrentPerson() {
+  const person =
+    selectedPerson();
+
+  if (!person) {
+    return ['TW', 'US'];
+  }
+
+  const scope =
+    person.MarketScope ||
+    '台/美股';
+
+  if (scope === '台股') {
+    return ['TW'];
+  }
+
+  if (scope === '美股') {
+    return ['US'];
+  }
+
+  return ['TW', 'US'];
+}
+
+
+function fillMarketSelect(selectEl) {
+  const allowed =
+    getAllowedMarketsForCurrentPerson();
+
+  selectEl.innerHTML =
+    allowed
+      .map(
+        market =>
+          market === 'TW'
+            ? '<option value="TW">台股</option>'
+            : '<option value="US">美股</option>'
+      )
+      .join('');
+}
+
+
 function openBaseDialog() {
   if (!ensurePerson()) {
     return;
@@ -2104,8 +2211,9 @@ function openBaseDialog() {
     '目前人員：' +
     person.Name;
 
-  baseMarket.value =
-    'TW';
+  fillMarketSelect(
+    baseMarket
+  );
 
   baseCode.value =
     '';
@@ -2332,8 +2440,9 @@ function openTradeDialog() {
       .toISOString()
       .slice(0,10);
 
-  tradeMarket.value =
-    'TW';
+  fillMarketSelect(
+    tradeMarket
+  );
 
   tradeCode.value =
     '';
@@ -2381,6 +2490,10 @@ function editTrade(id) {
 
   tradeDate.value =
     row.Date || '';
+
+  fillMarketSelect(
+    tradeMarket
+  );
 
   tradeMarket.value =
     row.Market || 'TW';
@@ -2510,7 +2623,7 @@ async function deleteTrade(id) {
 function renderPersons() {
   if (!state.persons.length) {
     personBody.innerHTML =
-      '<tr><td colspan="4" class="empty">尚無人員</td></tr>';
+      '<tr><td colspan="5" class="empty">尚無人員</td></tr>';
 
     return;
   }
@@ -2527,6 +2640,10 @@ function renderPersons() {
 
           <td>
           <b>${esc(p.Name)}</b>
+          </td>
+
+          <td>
+          ${esc(p.MarketScope || '台/美股')}
           </td>
 
           <td>
@@ -2578,6 +2695,9 @@ function openPersonDialog() {
 
   pName.value = '';
 
+  pMarketScope.value =
+    '台/美股';
+
   pStatus.value =
     '啟用';
 
@@ -2605,6 +2725,10 @@ function editPerson(id) {
 
   pName.value =
     person.Name || '';
+
+  pMarketScope.value =
+    person.MarketScope ||
+    '台/美股';
 
   pStatus.value =
     person.Status === '停用'
@@ -2641,6 +2765,9 @@ async function savePerson() {
 
         Name:
           name,
+
+        MarketScope:
+          pMarketScope.value,
 
         Status:
           pStatus.value
