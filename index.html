@@ -260,6 +260,66 @@ select{
   color:var(--text);
 }
 
+
+.record-page-head{
+  margin:28px 0 18px;
+}
+
+.record-page-head .current-person-text{
+  margin-bottom:8px;
+}
+
+.record-page-head h2{
+  margin:0;
+}
+
+.record-action-row{
+  margin:12px 0 18px;
+}
+
+.record-filter-row{
+  display:grid;
+  grid-template-columns:minmax(220px, 1fr) minmax(220px, 1fr);
+  gap:26px;
+  align-items:end;
+  margin:0 0 16px;
+}
+
+.record-filter-action{
+  display:flex;
+  align-items:flex-start;
+}
+
+.record-filter-group label{
+  display:block;
+  margin-bottom:7px;
+  color:var(--muted);
+  font-size:13px;
+}
+
+.record-filter-group select{
+  width:100%;
+  min-height:44px;
+}
+
+.record-filter-action button{
+  min-height:44px;
+  white-space:nowrap;
+}
+
+@media(max-width:900px){
+  .record-filter-row{
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+  }
+}
+
+@media(max-width:600px){
+  .record-filter-row{
+    grid-template-columns:1fr;
+  }
+}
+
 @media(max-width:1000px){
   .cards{
     grid-template-columns:1fr 1fr;
@@ -412,7 +472,7 @@ onchange="renderDashboard()">
 </div>
 
 <div class="card">
-<div class="label">銀行帳戶（已扣除今日交易金額）</div>
+<div class="label">銀行帳戶（扣除今日交易金額）</div>
 <div class="value" id="dBankAfterTrade">NT$ 0</div>
 </div>
 
@@ -442,35 +502,34 @@ style="margin-top:18px;">
 id="daily"
 class="page">
 
-<div class="toolbar">
-
-<div>
-<h2>每日資產</h2>
-<div class="sub current-person-text" id="dailyPersonText"></div>
+<div class="record-page-head">
+  <div class="sub current-person-text" id="dailyPersonText"></div>
+  <h2>每日資產</h2>
 </div>
 
-<div class="filter-bar">
-
-<label style="margin:0;">年份</label>
-
-<select
-id="dailyYear"
-onchange="handleDailyYearChange()">
-</select>
-
-<label style="margin:0;">月份</label>
-
-<select
-id="dailyMonth"
-onchange="renderDaily()">
-</select>
-
-<button
-onclick="openDailyDialog()">
-＋新增
-</button>
-
+<div class="record-action-row">
+  <button onclick="openDailyDialog()">
+    ＋新增
+  </button>
 </div>
+
+<div class="record-filter-row">
+
+  <div class="record-filter-group">
+    <label for="dailyYear">年份</label>
+    <select
+      id="dailyYear"
+      onchange="handleDailyYearChange()">
+    </select>
+  </div>
+
+  <div class="record-filter-group">
+    <label for="dailyMonth">月份</label>
+    <select
+      id="dailyMonth"
+      onchange="renderDaily()">
+    </select>
+  </div>
 
 </div>
 
@@ -582,35 +641,34 @@ onclick="openBaseDialog()">
 id="trades"
 class="page">
 
-<div class="toolbar">
-
-<div>
-<h2>交易紀錄</h2>
-<div class="sub current-person-text" id="tradePersonText"></div>
+<div class="record-page-head">
+  <div class="sub current-person-text" id="tradePersonText"></div>
+  <h2>交易紀錄</h2>
 </div>
 
-<div class="filter-bar">
-
-<label style="margin:0;">年份</label>
-
-<select
-id="tradeYear"
-onchange="handleTradeYearChange()">
-</select>
-
-<label style="margin:0;">月份</label>
-
-<select
-id="tradeMonth"
-onchange="renderTrades()">
-</select>
-
-<button
-onclick="openTradeDialog()">
-＋新增交易
-</button>
-
+<div class="record-action-row">
+  <button onclick="openTradeDialog()">
+    ＋新增交易
+  </button>
 </div>
+
+<div class="record-filter-row">
+
+  <div class="record-filter-group">
+    <label for="tradeYear">年份</label>
+    <select
+      id="tradeYear"
+      onchange="handleTradeYearChange()">
+    </select>
+  </div>
+
+  <div class="record-filter-group">
+    <label for="tradeMonth">月份</label>
+    <select
+      id="tradeMonth"
+      onchange="renderTrades()">
+    </select>
+  </div>
 
 </div>
 
