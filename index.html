@@ -2020,6 +2020,19 @@ async function saveDaily() {
     );
   }
 
+  // V24 後端會回傳本次實際儲存的開盤 / 收盤值。
+  // 若沒有 data，通常代表 Apps Script Web App 還是舊部署版本。
+  if (
+    !res.data ||
+    res.data.TWOpenValue === undefined ||
+    res.data.TWCloseValue === undefined
+  ) {
+    alert(
+      '前端已更新，但 Apps Script 可能仍是舊部署版本。\n' +
+      '請重新部署 Code.gs 新版本後再試一次。'
+    );
+  }
+
   dailyDialog.close();
 
   await loadAll();
