@@ -845,8 +845,8 @@ dialog::backdrop {
               <input id="todayTradeAmount" type="number" step="1" oninput="updateBankAfterTradePreview()">
             </div>
             <div class="field-card full">
-              <label>銀行帳戶（扣除今日交易金額）</label>
-              <input id="bankAfterTradePreview" type="number" readonly>
+              <label>銀行帳戶（扣除今日交易金額）<br><span style="font-weight:400;">自動計算，可手動修改</span></label>
+              <input id="bankAfterTradePreview" type="number" step="1">
             </div>
             <div class="field-card">
               <label>盤後資金狀態</label>
@@ -1608,6 +1608,12 @@ async function saveDaily() {
         : Number(
             $('todayTradeAmount').value
           ),
+
+    BankAfterTrade:
+      Number(
+        $('bankAfterTradePreview').value || 0
+      ),
+
     PreAdjustmentType: $('preAdjustmentType').value,
     PreAdjustmentAmount: Number($('preAdjustmentAmount').value || 0),
     PostAdjustmentType: $('postAdjustmentType').value,
