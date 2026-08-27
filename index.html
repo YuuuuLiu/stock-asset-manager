@@ -432,13 +432,11 @@ select{
 </head>
 
 <body>
+<select id="currentPerson" style="display:none" aria-hidden="true"></select>
 
 <header>
 
-<div>
-  <b>股票管理系統</b>
-  
-</div>
+
 
 </header>
 
@@ -982,7 +980,36 @@ function activePersons() {
 
 
 function selectedPersonID() {
-  return currentPerson.value;
+  const dashboardSelect =
+    document.getElementById(
+      'dashboardPersonSelect'
+    );
+
+  if (
+    dashboardSelect &&
+    dashboardSelect.value
+  ) {
+    return dashboardSelect.value;
+  }
+
+  const hiddenCurrentPerson =
+    document.getElementById(
+      'currentPerson'
+    );
+
+  if (
+    hiddenCurrentPerson &&
+    hiddenCurrentPerson.value
+  ) {
+    return hiddenCurrentPerson.value;
+  }
+
+  const firstActivePerson =
+    activePersons()[0];
+
+  return firstActivePerson
+    ? String(firstActivePerson.ID)
+    : '';
 }
 
 
@@ -1096,11 +1123,20 @@ function replaceRowsForPerson(
 function refreshPersonSelect(
   preferredID = ''
 ) {
+  const hiddenCurrentPerson =
+    document.getElementById(
+      'currentPerson'
+    );
+
+  if (!hiddenCurrentPerson) {
+    return;
+  }
+
   const previous =
     preferredID ||
-    currentPerson.value;
+    hiddenCurrentPerson.value;
 
-  currentPerson.innerHTML =
+  hiddenCurrentPerson.innerHTML =
     activePersons()
       .map(
         p =>
@@ -1110,14 +1146,14 @@ function refreshPersonSelect(
 
   if (
     previous &&
-    [...currentPerson.options]
+    [...hiddenCurrentPerson.options]
       .some(
         option =>
           option.value ===
           String(previous)
       )
   ) {
-    currentPerson.value =
+    hiddenCurrentPerson.value =
       String(previous);
   }
 }
@@ -1183,7 +1219,7 @@ async function loadAll() {
       res.inventory || [];
 
     refreshPersonSelect(
-      currentPerson.value
+      selectedPersonID()
     );
 
     renderAll();
@@ -1586,9 +1622,18 @@ function getDashboardSelectedDate() {
 
 
 function refreshDashboardPersonOptions() {
+  const hiddenCurrentPerson =
+    document.getElementById(
+      'currentPerson'
+    );
+
   const current =
     dashboardPersonSelect.value ||
-    currentPerson.value;
+    (
+      hiddenCurrentPerson
+        ? hiddenCurrentPerson.value
+        : ''
+    );
 
   dashboardPersonSelect.innerHTML =
     activePersons()
@@ -1619,11 +1664,19 @@ function refreshDashboardPersonOptions() {
 
 
 function dashboardSelectedPersonID() {
-  return (
-    dashboardPersonSelect.value ||
-    currentPerson.value ||
-    ''
-  );
+  const dashboardSelect =
+    document.getElementById(
+      'dashboardPersonSelect'
+    );
+
+  if (
+    dashboardSelect &&
+    dashboardSelect.value
+  ) {
+    return dashboardSelect.value;
+  }
+
+  return selectedPersonID();
 }
 
 
@@ -3309,7 +3362,7 @@ async function savePerson() {
       refreshPersonSelect(
         editing
           ? res.person.ID
-          : currentPerson.value
+          : selectedPersonID()
       );
 
       personDialog.close();
