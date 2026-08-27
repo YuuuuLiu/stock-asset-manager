@@ -3,457 +3,285 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>股票管理系統</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-:root{
-  --bg:#f5f7fb;
-  --card:#ffffff;
-  --text:#182033;
-  --muted:#738096;
-  --primary:#2d4b74;
-  --line:#e6eaf0;
-  --red:#d64a4a;
-  --green:#2f8a61;
+:root {
+  --bg:#f4f7fb;
+  --panel:#ffffff;
+  --primary:#213b5b;
+  --primary-2:#31547c;
+  --text:#142033;
+  --muted:#708096;
+  --line:#dfe6ef;
+  --danger:#b42318;
+  --success:#147d44;
 }
 
-*{
+* {
   box-sizing:border-box;
 }
 
-body{
+body {
   margin:0;
-  font-family:Arial,"Microsoft JhengHei",sans-serif;
+  font-family:"Microsoft JhengHei","Noto Sans TC",Arial,sans-serif;
   background:var(--bg);
   color:var(--text);
 }
 
-header{
-  background:#203550;
-  color:white;
-  padding:18px 24px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:18px;
+header {
+  background:var(--primary);
+  color:#fff;
+  padding:22px 28px;
 }
 
-header b{
-  font-size:20px;
+header h1 {
+  margin:0;
+  font-size:22px;
 }
 
-.person-box{
-  display:flex;
-  gap:8px;
-  align-items:center;
-}
-
-.person-box select{
-  min-width:180px;
-}
-
-main{
-  max-width:1450px;
+.container {
+  max-width:1400px;
   margin:auto;
   padding:24px;
 }
 
-.tabs{
+.nav {
   display:flex;
-  gap:8px;
+  gap:10px;
   flex-wrap:wrap;
-  margin-bottom:20px;
+  margin-bottom:24px;
 }
 
-button{
+button {
   border:0;
-  border-radius:9px;
-  padding:10px 14px;
+  border-radius:10px;
+  padding:11px 16px;
   cursor:pointer;
+  font-size:14px;
   background:var(--primary);
-  color:white;
+  color:#fff;
 }
 
-button.secondary{
-  background:#e9edf3;
-  color:#2d4b74;
+button:hover {
+  background:var(--primary-2);
 }
 
-button.danger{
-  background:#fae8e8;
-  color:#b33b3b;
+button.secondary {
+  background:#e8eef5;
+  color:var(--text);
 }
 
-button.small{
-  padding:6px 9px;
+button.danger {
+  background:var(--danger);
 }
 
-.tabs button{
-  background:#e9edf3;
-  color:#2d4b74;
+button:disabled {
+  opacity:.6;
+  cursor:not-allowed;
 }
 
-.tabs button.active{
-  background:var(--primary);
-  color:white;
-}
-
-.page{
+.page {
   display:none;
 }
 
-.page.active{
+.page.active {
   display:block;
 }
 
-.toolbar{
+.toolbar {
   display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:12px;
-  flex-wrap:wrap;
-  margin:20px 0 12px;
-}
-
-.cards{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:14px;
-}
-
-.card{
-  background:white;
-  border-radius:14px;
-  padding:18px;
-  box-shadow:0 5px 20px rgba(0,0,0,.06);
-}
-
-.label{
-  color:var(--muted);
-  font-size:13px;
-}
-
-.value{
-  font-size:24px;
-  font-weight:700;
-  margin-top:8px;
-}
-
-.sub{
-  color:var(--muted);
-  font-size:12px;
-  margin-top:5px;
-}
-
-.up{
-  color:var(--red);
-}
-
-.down{
-  color:var(--green);
-}
-
-.person-context{
-  background:#edf4fb;
-  color:#51677f;
-  padding:10px 14px;
-  border-radius:10px;
-  margin-bottom:14px;
-  font-size:13px;
-}
-
-table{
-  width:100%;
-  border-collapse:collapse;
-  background:white;
-  border-radius:12px;
-  overflow:hidden;
-}
-
-th,
-td{
-  padding:10px;
-  border-bottom:1px solid var(--line);
-  text-align:left;
-  font-size:14px;
-}
-
-th{
-  background:#fbfcfe;
-  color:#68758a;
-}
-
-.empty{
-  text-align:center!important;
-  color:#999;
-  padding:28px!important;
-}
-
-dialog{
-  border:0;
-  border-radius:14px;
-  width:min(680px,92vw);
-  padding:20px;
-  box-shadow:0 24px 70px rgba(0,0,0,.25);
-}
-
-dialog::backdrop{
-  background:rgba(12,20,32,.38);
-}
-
-
-.daily-dialog-section{
-  margin-top:16px;
-  padding-top:16px;
-  border-top:1px solid var(--line);
-}
-
-.daily-dialog-section h4{
-  margin:0 0 12px;
-  font-size:16px;
-  color:var(--text);
-}
-
-.daily-dialog-section:first-of-type{
-  margin-top:12px;
-}
-
-.daily-person-date{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:12px;
-}
-
-@media(max-width:650px){
-  .daily-person-date{
-    grid-template-columns:1fr;
-  }
-}
-
-.form{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:12px;
-}
-
-.form .full{
-  grid-column:1/-1;
-}
-
-label{
-  display:block;
-  color:var(--muted);
-  font-size:13px;
-  margin-bottom:5px;
-}
-
-input,
-select{
-  width:100%;
-  padding:10px;
-  border:1px solid #d7dde6;
-  border-radius:8px;
-  background:white;
-}
-
-.actions{
-  display:flex;
-  justify-content:flex-end;
-  gap:8px;
-  margin-top:18px;
-}
-
-.chart-wrap{
-  height:330px;
-}
-
-
-.filter-bar{
-  display:flex;
-  gap:10px;
-  align-items:center;
-  flex-wrap:wrap;
-}
-
-.filter-bar select{
-  min-width:120px;
-}
-
-
-.current-person-text{
-  font-size:20px;
-  font-weight:700;
-  color:var(--text);
-}
-
-
-.record-page-head{
-  margin:28px 0 18px;
-}
-
-.record-page-head .current-person-text{
-  margin-bottom:8px;
-}
-
-.record-page-head h2{
-  margin:0;
-}
-
-.record-action-row{
-  margin:12px 0 18px;
-}
-
-.record-filter-row{
-  display:grid;
-  grid-template-columns:minmax(220px, 1fr) minmax(220px, 1fr);
-  gap:26px;
   align-items:end;
-  margin:0 0 16px;
-}
-
-.record-filter-action{
-  display:flex;
-  align-items:flex-start;
-}
-
-.record-filter-group label{
-  display:block;
-  margin-bottom:7px;
-  color:var(--muted);
-  font-size:13px;
-}
-
-.record-filter-group select{
-  width:100%;
-  min-height:44px;
-}
-
-.record-filter-action button{
-  min-height:44px;
-  white-space:nowrap;
-}
-
-@media(max-width:900px){
-  .record-filter-row{
-    grid-template-columns:1fr 1fr;
-    gap:12px;
-  }
-}
-
-@media(max-width:600px){
-  .record-filter-row{
-    grid-template-columns:1fr;
-  }
-}
-
-
-.market-us-only.is-hidden{
-  display:none !important;
-}
-
-
-
-.dashboard-head{
-  margin:24px 0 14px;
-}
-
-.dashboard-title-row{
-  display:flex;
-  align-items:center;
-  gap:28px;
+  justify-content:space-between;
+  gap:12px;
   flex-wrap:wrap;
+  margin-bottom:18px;
 }
 
-.dashboard-title-row h2{
+.toolbar h2 {
   margin:0;
 }
 
-.dashboard-title-row .dashboard-data-date{
-  margin:0;
-  font-size:14px;
-  font-weight:700;
-  color:var(--text);
-}
-
-.dashboard-head .current-person-text{
-  margin-top:8px;
-}
-
-.dashboard-filters{
+.filters {
   display:grid;
   grid-template-columns:repeat(4,minmax(140px,180px));
   gap:12px;
-  align-items:end;
-  margin:16px 0 22px;
+  margin:14px 0 18px;
 }
 
-.dashboard-filters label{
+label {
   display:block;
   margin-bottom:6px;
   color:var(--muted);
   font-size:13px;
 }
 
-.dashboard-filters select{
+input,
+select {
   width:100%;
-  min-height:44px;
+  min-height:42px;
+  padding:9px 11px;
+  border:1px solid var(--line);
+  border-radius:8px;
+  background:#fff;
+  font-size:14px;
 }
 
-.dashboard-cards{
+.card-grid {
   display:grid;
   grid-template-columns:repeat(4,minmax(0,1fr));
   gap:14px;
-  margin-bottom:18px;
+  margin:18px 0;
 }
 
-.dashboard-chart-card{
+.card {
+  background:var(--panel);
+  border-radius:14px;
+  padding:18px;
+  box-shadow:0 4px 18px rgba(25,45,70,.06);
+}
+
+.card .label {
+  color:var(--muted);
+  font-size:13px;
+}
+
+.card .value {
+  margin-top:8px;
+  font-size:23px;
+  font-weight:700;
+}
+
+.card .sub {
+  margin-top:6px;
+  color:var(--muted);
+  font-size:13px;
+}
+
+.data-date {
+  font-weight:700;
+  margin:8px 0 4px;
+}
+
+.table-wrap {
+  overflow:auto;
+  background:#fff;
+  border-radius:14px;
+  box-shadow:0 4px 18px rgba(25,45,70,.05);
+}
+
+table {
+  border-collapse:collapse;
   width:100%;
+  min-width:1150px;
+}
+
+th,
+td {
+  padding:12px 10px;
+  border-bottom:1px solid var(--line);
+  text-align:left;
+  white-space:nowrap;
+}
+
+th {
+  background:#f7f9fc;
+  color:#526176;
+  font-size:13px;
+}
+
+td {
+  font-size:14px;
+}
+
+.actions {
+  display:flex;
+  gap:8px;
+  justify-content:flex-end;
   margin-top:18px;
 }
 
-@media(max-width:1000px){
-  .dashboard-cards{
+dialog {
+  width:min(760px,94vw);
+  border:0;
+  border-radius:16px;
+  padding:24px;
+  box-shadow:0 20px 60px rgba(0,0,0,.25);
+}
+
+dialog::backdrop {
+  background:rgba(20,32,51,.45);
+}
+
+dialog h3 {
+  margin-top:0;
+}
+
+.form-grid {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+
+.full {
+  grid-column:1/-1;
+}
+
+.section {
+  margin-top:18px;
+  padding-top:16px;
+  border-top:1px solid var(--line);
+}
+
+.section h4 {
+  margin:0 0 12px;
+}
+
+.market-us-only.hidden {
+  display:none !important;
+}
+
+.empty {
+  text-align:center;
+  color:var(--muted);
+  padding:30px;
+}
+
+.status-enabled {
+  color:var(--success);
+  font-weight:700;
+}
+
+.status-disabled {
+  color:var(--danger);
+  font-weight:700;
+}
+
+.chart-card {
+  margin-top:18px;
+}
+
+@media(max-width:900px) {
+  .filters,
+  .card-grid {
     grid-template-columns:repeat(2,minmax(0,1fr));
   }
 }
 
-@media(max-width:700px){
-  .dashboard-filters{
+@media(max-width:650px) {
+  .filters,
+  .card-grid,
+  .form-grid {
     grid-template-columns:1fr;
   }
 
-  .dashboard-cards{
-    grid-template-columns:1fr;
+  .full {
+    grid-column:auto;
   }
 
-  .dashboard-title-row{
-    gap:10px;
-    align-items:flex-start;
-    flex-direction:column;
-  }
-}
-
-@media(max-width:1000px){
-  .cards{
-    grid-template-columns:1fr 1fr;
-  }
-}
-
-@media(max-width:650px){
-  .cards,
-  .form{
-    grid-template-columns:1fr;
-  }
-
-  header{
-    flex-direction:column;
-    align-items:flex-start;
-  }
-
-  main{
+  .container {
     padding:14px;
   }
 }
@@ -461,1238 +289,596 @@ select{
 </head>
 
 <body>
-<div id="dailyPersonText" style="display:none" aria-hidden="true"></div>
-
-<div id="dashboardPersonText" style="display:none" aria-hidden="true"></div>
-
-
-
 <header>
-
-
-
+  <h1>股票管理系統</h1>
 </header>
 
+<div class="container">
 
-<main>
+  <div class="nav">
+    <button onclick="showPage('dashboard')">Dashboard</button>
+    <button onclick="showPage('daily')">每日資產</button>
+    <button onclick="showPage('persons')">人員管理</button>
+  </div>
 
+  <!-- Dashboard -->
+  <section id="dashboard" class="page active">
+    <div class="toolbar">
+      <h2>Dashboard</h2>
+    </div>
 
-<div class="tabs">
+    <div class="filters">
+      <div>
+        <label>人員</label>
+        <select id="dashboardPerson" onchange="renderDashboard()"></select>
+      </div>
 
-<button
-class="active"
-onclick="showPage('dashboard',this)">
-Dashboard
-</button>
+      <div>
+        <label>年份</label>
+        <select id="dashboardYear" onchange="handleDashboardYearChange()"></select>
+      </div>
 
-<button
-onclick="showPage('daily',this)">
-每日資產
-</button>
+      <div>
+        <label>月份</label>
+        <select id="dashboardMonth" onchange="handleDashboardMonthChange()"></select>
+      </div>
 
-<button
-onclick="showPage('persons',this)">
-人員管理
-</button>
+      <div>
+        <label>日期</label>
+        <select id="dashboardDay" onchange="handleDashboardDayChange()"></select>
+      </div>
+    </div>
+
+    <div id="dashboardDataDate" class="data-date">資料日期：—</div>
+
+    <div class="card-grid">
+      <div class="card">
+        <div class="label">總資產</div>
+        <div class="value" id="dTotalAsset">NT$ 0</div>
+      </div>
+
+      <div class="card">
+        <div class="label">開盤台股市值</div>
+        <div class="value" id="dTWOpen">NT$ 0</div>
+      </div>
+
+      <div class="card">
+        <div class="label">收盤台股市值</div>
+        <div class="value" id="dTWClose">NT$ 0</div>
+        <div class="sub" id="dTWRate">水位 0%</div>
+      </div>
+
+      <div class="card market-us-only">
+        <div class="label">開盤美股市值</div>
+        <div class="value" id="dUSOpen">US$ 0</div>
+      </div>
+
+      <div class="card market-us-only">
+        <div class="label">收盤美股市值</div>
+        <div class="value" id="dUSClose">US$ 0</div>
+        <div class="sub" id="dUSRate">水位 0%</div>
+      </div>
+
+      <div class="card">
+        <div class="label">銀行帳戶</div>
+        <div class="value" id="dBank">NT$ 0</div>
+      </div>
+
+      <div class="card">
+        <div class="label">今日交易總金額</div>
+        <div class="value" id="dTrade">NT$ 0</div>
+      </div>
+
+      <div class="card">
+        <div class="label">銀行帳戶<br>（扣除今日交易金額）</div>
+        <div class="value" id="dBankAfter">NT$ 0</div>
+      </div>
+
+      <div class="card">
+        <div class="label">資金狀態</div>
+        <div class="value" id="dAdjustmentType">—</div>
+        <div class="sub" id="dAdjustmentAmount">NT$ 0</div>
+      </div>
+    </div>
+
+    <div class="card chart-card">
+      <canvas id="assetChart"></canvas>
+    </div>
+  </section>
+
+  <!-- Daily -->
+  <section id="daily" class="page">
+    <div class="toolbar">
+      <h2>每日資產</h2>
+      <button onclick="openDailyDialog()">＋ 新增</button>
+    </div>
+
+    <div class="filters" style="grid-template-columns:repeat(2,minmax(160px,200px));">
+      <div>
+        <label>年份</label>
+        <select id="dailyYear" onchange="renderDaily()"></select>
+      </div>
+
+      <div>
+        <label>月份</label>
+        <select id="dailyMonth" onchange="renderDaily()"></select>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>日期</th>
+            <th>人員</th>
+            <th>開盤台股市值</th>
+            <th>收盤台股市值</th>
+            <th>台股水位</th>
+            <th class="market-us-only">開盤美股市值</th>
+            <th class="market-us-only">收盤美股市值</th>
+            <th class="market-us-only">美股水位</th>
+            <th>銀行帳戶</th>
+            <th>今日交易總金額</th>
+            <th>銀行帳戶<br>（扣除今日交易金額）</th>
+            <th>資金狀態</th>
+            <th>可佈局／調節金額</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="dailyBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Persons -->
+  <section id="persons" class="page">
+    <div class="toolbar">
+      <h2>人員管理</h2>
+      <button onclick="openPersonDialog()">＋ 新增人員</button>
+    </div>
+
+    <div class="table-wrap">
+      <table style="min-width:700px;">
+        <thead>
+          <tr>
+            <th>姓名</th>
+            <th>市場別</th>
+            <th>狀態</th>
+            <th>建立時間</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="personBody"></tbody>
+      </table>
+    </div>
+  </section>
 
 </div>
 
+<!-- Daily Dialog -->
+<dialog id="dailyDialog">
+  <h3 id="dailyDialogTitle">新增每日資產</h3>
 
-<!-- Dashboard -->
+  <input type="hidden" id="dailyID">
 
-<section
-id="dashboard"
-class="page active">
+  <div class="form-grid">
+    <div>
+      <label>人員</label>
+      <select id="dailyPersonID" onchange="updateDailyMarketVisibility()"></select>
+    </div>
 
-<div class="dashboard-head">
-
-  <div class="dashboard-title-row">
-    <h2>Dashboard</h2>
-
-    <div class="dashboard-data-date" id="dashboardDataDate">
-      資料日期：—
+    <div>
+      <label>日期</label>
+      <input id="dailyDate" type="date">
     </div>
   </div>
-</div>
 
-<div class="person-context market-us-only">
-美股以 USD 獨立顯示；總資產僅以台幣資產（收盤台股市值 + 銀行帳戶）計算。
-</div>
+  <div class="section">
+    <h4>盤前資料</h4>
 
-<div class="dashboard-filters">
+    <div class="form-grid">
+      <div>
+        <label>開盤台股市值</label>
+        <input id="twOpenValue" type="number" step="1">
+      </div>
 
-  <div>
-    <label for="dashboardPersonSelect">人員</label>
-    <select id="dashboardPersonSelect" onchange="handleDashboardPersonChange()"></select>
+      <div>
+        <label>台股水位 (%)</label>
+        <input id="twPositionRate" type="number" step="0.01">
+      </div>
+
+      <div class="market-us-only daily-us-field">
+        <label>開盤美股市值 (USD)</label>
+        <input id="usOpenValue" type="number" step="0.01">
+      </div>
+
+      <div class="market-us-only daily-us-field">
+        <label>美股水位 (%)</label>
+        <input id="usPositionRate" type="number" step="0.01">
+      </div>
+
+      <div class="full">
+        <label>銀行帳戶金額</label>
+        <input id="bankBalance" type="number" step="1" oninput="updateBankAfterTradePreview()">
+      </div>
+    </div>
   </div>
 
+  <div class="section">
+    <h4>盤後資料</h4>
 
-  <div>
-    <label for="dashboardYear">年份</label>
-    <select id="dashboardYear" onchange="handleDashboardYearChange()"></select>
+    <div class="form-grid">
+      <div>
+        <label>收盤台股市值</label>
+        <input id="twCloseValue" type="number" step="1">
+      </div>
+
+      <div class="market-us-only daily-us-field">
+        <label>收盤美股市值 (USD)</label>
+        <input id="usCloseValue" type="number" step="0.01">
+      </div>
+
+      <div>
+        <label>今日交易總金額</label>
+        <input id="todayTradeAmount" type="number" step="1" oninput="updateBankAfterTradePreview()">
+      </div>
+
+      <div>
+        <label>銀行帳戶<br>（扣除今日交易金額）</label>
+        <input id="bankAfterTradePreview" type="number" readonly>
+      </div>
+    </div>
   </div>
 
-  <div>
-    <label for="dashboardMonth">月份</label>
-    <select id="dashboardMonth" onchange="handleDashboardMonthChange()"></select>
+  <div class="section">
+    <h4>資金狀態</h4>
+
+    <div class="form-grid">
+      <div>
+        <label>資金狀態</label>
+        <select id="adjustmentType">
+          <option value="可佈局">可佈局</option>
+          <option value="調節">調節</option>
+        </select>
+      </div>
+
+      <div>
+        <label>可佈局／調節金額</label>
+        <input id="adjustmentAmount" type="number" step="1">
+      </div>
+    </div>
   </div>
 
-  <div>
-    <label for="dashboardDay">日期</label>
-    <select id="dashboardDay" onchange="renderDashboard()"></select>
+  <div class="actions">
+    <button class="secondary" onclick="dailyDialog.close()">取消</button>
+    <button id="dailySaveBtn" onclick="saveDaily()">儲存</button>
   </div>
+</dialog>
 
-</div>
-
-<div class="dashboard-cards">
-
-<div class="card">
-<div class="label">總資產</div>
-<div class="value" id="dTotal">NT$ 0</div>
-</div>
-
-<div class="card">
-<div class="label">開盤台股市值</div>
-<div class="value" id="dTWOpen">NT$ 0</div>
-</div>
-
-<div class="card">
-<div class="label">收盤台股市值</div>
-<div class="value" id="dTW">NT$ 0</div>
-<div class="sub" id="dTWPosition">水位 0%</div>
-</div>
-
-<div class="card market-us-only">
-<div class="label">開盤美股市值</div>
-<div class="value" id="dUSOpen">US$ 0</div>
-</div>
-
-<div class="card market-us-only">
-<div class="label">收盤美股市值</div>
-<div class="value" id="dUS">US$ 0</div>
-<div class="sub" id="dUSPosition">水位 0%</div>
-</div>
-
-<div class="card">
-<div class="label">銀行帳戶</div>
-<div class="value" id="dBank">NT$ 0</div>
-</div>
-
-<div class="card">
-<div class="label">今日交易總金額</div>
-<div class="value" id="dTodayTrade">NT$ 0</div>
-</div>
-
-<div class="card">
-<div class="label">銀行帳戶<br>（扣除今日交易金額）</div>
-<div class="value" id="dBankAfterTrade">NT$ 0</div>
-</div>
-
-<div class="card">
-<div class="label" id="dAdjustmentLabel">可佈局 / 調節</div>
-<div class="value" id="dAdjustment">NT$ 0</div>
-</div>
-
-</div>
-
-<div class="card dashboard-chart-card">
-
-<div class="chart-wrap">
-<canvas id="assetChart"></canvas>
-</div>
-
-</div>
-
-
-</section>
-
-<!-- 每日資產 -->
-
-<section
-id="daily"
-class="page">
-
-<div class="record-page-head">
-<h2>每日資產</h2>
-</div>
-
-<div class="record-action-row">
-  <button onclick="openDailyDialog()">
-    ＋新增
-  </button>
-</div>
-
-<div class="record-filter-row">
-
-  <div class="record-filter-group">
-    <label for="dailyYear">年份</label>
-    <select
-      id="dailyYear"
-      onchange="handleDailyYearChange()">
-    </select>
-  </div>
-
-  <div class="record-filter-group">
-    <label for="dailyMonth">月份</label>
-    <select
-      id="dailyMonth"
-      onchange="renderDaily()">
-    </select>
-  </div>
-
-</div>
-
-<table>
-
-<thead>
-
-<tr>
-<th>日期</th>
-<th>人員</th>
-<th>開盤台股市值</th>
-<th>收盤台股市值</th>
-<th>台股水位</th>
-<th class="market-us-only">開盤美股市值</th>
-<th class="market-us-only">收盤美股市值</th>
-<th class="market-us-only">美股水位</th>
-<th>銀行帳戶</th>
-<th>今日交易總金額</th>
-<th>銀行帳戶<br>（扣除今日交易金額）</th>
-<th>狀態</th>
-<th>金額</th>
-<th>總資產</th>
-<th>增減</th>
-<th>操作</th>
-</tr>
-
-</thead>
-
-<tbody id="dailyBody"></tbody>
-
-</table>
-
-</section>
-
-
-
-
-
-
-
-
-
-
-
-
-<!-- 人員管理 -->
-
-<section
-id="persons"
-class="page">
-
-<div class="toolbar">
-
-<h2>人員管理</h2>
-
-<button
-onclick="openPersonDialog()">
-＋新增人員
-</button>
-
-</div>
-
-<table>
-
-<thead>
-
-<tr>
-<th>姓名</th>
-<th>市場別</th>
-<th>狀態</th>
-<th>建立時間</th>
-<th>操作</th>
-</tr>
-
-</thead>
-
-<tbody id="personBody"></tbody>
-
-</table>
-
-</section>
-
-</main>
-
-
-<!-- 人員 Dialog -->
-
+<!-- Person Dialog -->
 <dialog id="personDialog">
+  <h3 id="personDialogTitle">新增人員</h3>
 
-<h3 id="personDialogTitle">新增人員</h3>
+  <input type="hidden" id="personID">
 
-<input id="pID" type="hidden">
+  <div class="form-grid">
+    <div>
+      <label>人員姓名</label>
+      <input id="personName">
+    </div>
 
-<div class="form">
+    <div>
+      <label>市場別</label>
+      <select id="personMarketScope">
+        <option value="台股">台股</option>
+        <option value="美股">美股</option>
+        <option value="台/美股">台 / 美股</option>
+      </select>
+    </div>
 
-<div>
-<label>人員姓名</label>
-<input id="pName">
-</div>
+    <div>
+      <label>狀態</label>
+      <select id="personStatus">
+        <option value="啟用">啟用</option>
+        <option value="停用">停用</option>
+      </select>
+    </div>
+  </div>
 
-<div>
-<label>市場別</label>
-
-<select id="pMarketScope">
-<option value="台股">台股</option>
-<option value="美股">美股</option>
-<option value="台/美股">台 / 美股</option>
-</select>
-
-</div>
-
-<div>
-<label>狀態</label>
-
-<select id="pStatus">
-<option value="啟用">啟用</option>
-<option value="停用">停用</option>
-</select>
-</div>
-
-</div>
-
-<div class="actions">
-
-<button
-class="secondary"
-onclick="personDialog.close()">
-取消
-</button>
-
-<button
-id="personSaveBtn"
-onclick="savePerson()">
-儲存
-</button>
-
-</div>
-
+  <div class="actions">
+    <button class="secondary" onclick="personDialog.close()">取消</button>
+    <button id="personSaveBtn" onclick="savePerson()">儲存</button>
+  </div>
 </dialog>
-
-
-<!-- 每日資產 Dialog -->
-
-<dialog id="dailyDialog">
-
-<h3 id="dailyDialogTitle">
-新增每日資產
-</h3>
-
-<input
-id="dailyID"
-type="hidden">
-
-<div class="daily-person-date">
-
-<div>
-<label>人員</label>
-<select
-id="dailyPersonID"
-onchange="updateMarketVisibility()">
-</select>
-</div>
-
-<div>
-<label>日期</label>
-<input id="dailyDate" type="date">
-</div>
-
-</div>
-
-<div class="daily-dialog-section">
-
-<h4>盤前資料</h4>
-
-<div class="form">
-
-<div>
-<label>開盤台股市值</label>
-<input id="twOpenValue" type="number" step="1">
-</div>
-
-<div>
-<label>台股水位 (%)</label>
-<input id="twPositionRate" type="number" step="0.01">
-</div>
-
-<div class="market-us-only">
-<label>開盤美股市值 (USD)</label>
-<input id="usOpenValue" type="number" step="0.01">
-</div>
-
-<div class="market-us-only">
-<label>美股水位 (%)</label>
-<input id="usPositionRate" type="number" step="0.01">
-</div>
-
-<div class="full">
-<label>銀行帳戶金額</label>
-<input id="bankBalance" type="number" step="1">
-</div>
-
-</div>
-
-</div>
-
-<div class="daily-dialog-section">
-
-<h4>盤後資料</h4>
-
-<div class="form">
-
-<div>
-<label>收盤台股市值</label>
-<input id="twCloseValue" type="number" step="1">
-</div>
-
-<div class="market-us-only">
-<label>收盤美股市值 (USD)</label>
-<input id="usCloseValue" type="number" step="0.01">
-</div>
-
-<div>
-<label>今日交易總金額</label>
-<input id="todayTradeAmount" type="number" step="1">
-</div>
-
-<div>
-<label>銀行帳戶<br>（扣除今日交易金額）</label>
-<input
-id="bankAfterTradePreview"
-type="number"
-step="1"
-readonly>
-</div>
-
-</div>
-
-</div>
-
-<div class="daily-dialog-section">
-
-<h4>資金狀態</h4>
-
-<div class="form">
-
-<div>
-<label>資金狀態</label>
-
-<select id="adjustmentType">
-<option value="可佈局">可佈局</option>
-<option value="調節">調節</option>
-</select>
-
-</div>
-
-<div>
-<label>可佈局 / 調節金額</label>
-<input id="adjustmentAmount" type="number" step="1">
-</div>
-
-</div>
-
-</div>
-
-<div class="actions">
-
-<button
-class="secondary"
-onclick="dailyDialog.close()">
-取消
-</button>
-
-<button
-id="dailySaveBtn"
-onclick="saveDaily()">
-儲存
-</button>
-
-</div>
-
-</dialog>
-
-
-<!-- 期初庫存 Dialog -->
-
-
-
-
-<!-- 交易 Dialog -->
-
-
-
 
 <script>
-const dailyPersonText =
-  document.getElementById(
-    'dailyPersonText'
-  ) || {
-    textContent: ''
-  };
+const API_URL = 'https://script.google.com/macros/s/AKfycbzyooHTwpskMzdLOd6QQUA7FczSoUP-GGyqUa2Zlyos-6cH1Fb5mDKmvHdbpEJjQYoH/exec';
 
-
-const dashboardPersonText =
-  document.getElementById(
-    'dashboardPersonText'
-  ) || {
-    textContent: ''
-  };
-
-
-
-const API_URL =
-'https://script.google.com/macros/s/AKfycbzyooHTwpskMzdLOd6QQUA7FczSoUP-GGyqUa2Zlyos-6cH1Fb5mDKmvHdbpEJjQYoH/exec';
-
-let state = {
+const state = {
   persons: [],
-  daily: [],
-  baseInventory: [],
-  trades: [],
-  inventory: []
+  daily: []
 };
 
-let assetChart;
+let assetChart = null;
 
+const $ = id => document.getElementById(id);
 
-const esc = s =>
-  String(s ?? '')
-    .replace(
-      /[&<>'"]/g,
-      c => ({
-        '&':'&amp;',
-        '<':'&lt;',
-        '>':'&gt;',
-        "'":'&#39;',
-        '"':'&quot;'
-      }[c])
-    );
-
-
-const fmtTWD = n =>
-  'NT$ ' +
-  Math.round(
-    Number(n || 0)
-  ).toLocaleString('zh-TW');
-
-
-const fmtUSD = n =>
-  'US$ ' +
-  Number(n || 0)
-    .toLocaleString(
-      'zh-TW',
-      {
-        maximumFractionDigits: 2
-      }
-    );
-
-
-function showPage(id, btn) {
-  document
-    .querySelectorAll('.page')
-    .forEach(
-      x =>
-        x.classList.remove('active')
-    );
-
-  document
-    .querySelectorAll('.tabs button')
-    .forEach(
-      x =>
-        x.classList.remove('active')
-    );
-
-  document
-    .getElementById(id)
-    .classList.add('active');
-
-  btn.classList.add('active');
+function esc(value) {
+  return String(value ?? '')
+    .replaceAll('&','&amp;')
+    .replaceAll('<','&lt;')
+    .replaceAll('>','&gt;')
+    .replaceAll('"','&quot;')
+    .replaceAll("'","&#039;");
 }
 
-
-async function apiGet(action) {
-  const response =
-    await fetch(
-      API_URL +
-      '?action=' +
-      encodeURIComponent(action)
-    );
-
-  return await response.json();
+function fmtTWD(value) {
+  return 'NT$ ' +
+    Number(value || 0).toLocaleString('zh-TW', {
+      maximumFractionDigits: 0
+    });
 }
 
-
-async function apiPost(payload) {
-  const response =
-    await fetch(
-      API_URL,
-      {
-        method: 'POST',
-
-        headers: {
-          'Content-Type':
-            'text/plain;charset=utf-8'
-        },
-
-        body:
-          JSON.stringify(payload)
-      }
-    );
-
-  return await response.json();
+function fmtUSD(value) {
+  return 'US$ ' +
+    Number(value || 0).toLocaleString('en-US', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2
+    });
 }
 
-
-function activePersons() {
-  return state.persons.filter(
-    x =>
-      String(x.Status) ===
-      '啟用'
-  );
+function todayString() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
 }
-
-
-function selectedPersonID() {
-  const firstActivePerson =
-    activePersons()[0];
-
-  return firstActivePerson
-    ? String(firstActivePerson.ID)
-    : '';
-}
-
-
-function selectedPerson() {
-  const personID =
-    selectedPersonID();
-
-  return state.persons.find(
-    person =>
-      String(person.ID) ===
-      String(personID)
-  ) || null;
-}
-
-
-function byPerson(rows) {
-  const id =
-    selectedPersonID();
-
-  return rows.filter(
-    x =>
-      String(x.PersonID || '') ===
-      String(id)
-  );
-}
-
-
-function ensurePerson() {
-  if (!selectedPersonID()) {
-    alert(
-      '請先新增並選擇一位啟用中的人員'
-    );
-
-    return false;
-  }
-
-  return true;
-}
-
-
 
 function setSaving(button, saving) {
-  if (!button) {
-    return;
-  }
+  if (!button) return;
 
   if (saving) {
-    button.dataset.originalText =
-      button.textContent;
-
-    button.textContent =
-      '儲存中...';
-
-    button.disabled =
-      true;
+    button.dataset.oldText = button.textContent;
+    button.textContent = '儲存中...';
+    button.disabled = true;
   } else {
-    button.textContent =
-      button.dataset.originalText ||
-      '儲存';
-
-    button.disabled =
-      false;
+    button.textContent = button.dataset.oldText || '儲存';
+    button.disabled = false;
   }
 }
 
+async function apiGet(action) {
+  const url = `${API_URL}?action=${encodeURIComponent(action)}`;
+  const response = await fetch(url);
+  const text = await response.text();
 
-function upsertById(rows, item) {
-  const list =
-    Array.isArray(rows)
-      ? rows.slice()
-      : [];
-
-  if (!item) {
-    return list;
-  }
-
-  const index =
-    list.findIndex(
-      row =>
-        String(row.ID) ===
-        String(item.ID)
+  if (text.trim().startsWith('<')) {
+    throw new Error(
+      'Apps Script API 回傳 HTML，請確認 Web App 網址與部署權限（任何人可存取）'
     );
-
-  if (index >= 0) {
-    list[index] = item;
-  } else {
-    list.push(item);
   }
 
-  return list;
+  return JSON.parse(text);
 }
 
+async function apiPost(payload) {
+  const response = await fetch(API_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'text/plain;charset=utf-8'
+    },
+    body: JSON.stringify(payload)
+  });
 
-function replaceRowsForPerson(
-  rows,
-  personID,
-  personRows
-) {
-  const otherRows =
-    (rows || [])
-      .filter(
-        row =>
-          String(row.PersonID) !==
-          String(personID)
-      );
+  const text = await response.text();
 
-  return [
-    ...otherRows,
-    ...(personRows || [])
-  ];
+  if (text.trim().startsWith('<')) {
+    throw new Error(
+      'Apps Script API 回傳 HTML，請確認 Web App 網址與部署權限（任何人可存取）'
+    );
+  }
+
+  return JSON.parse(text);
 }
-
-
-function syncPersonNameLocally(
-  personID,
-  personName
-) {
-  const apply =
-    rows =>
-      (rows || []).map(
-        row =>
-          String(row.PersonID) ===
-          String(personID)
-            ? {
-                ...row,
-                PersonName:
-                  personName
-              }
-            : row
-      );
-
-  state.daily =
-    apply(state.daily);
-
-  state.baseInventory =
-    apply(state.baseInventory);
-
-  state.trades =
-    apply(state.trades);
-
-  state.inventory =
-    apply(state.inventory);
-}
-
-
 
 async function loadAll() {
   try {
-    const res =
-      await apiGet('getAll');
+    const res = await apiGet('getAll');
 
     if (!res.success) {
-      throw new Error(
-        res.message
-      );
+      throw new Error(res.message || '讀取失敗');
     }
 
-    state.persons =
-      res.persons || [];
+    state.persons = res.persons || [];
+    state.daily = res.daily || [];
 
-    state.daily =
-      res.daily || [];
-
-    state.baseInventory =
-      res.baseInventory || [];
-
-    state.trades =
-      res.trades || [];
-
-    state.inventory =
-      res.inventory || [];
-
+    refreshAllFilters();
     renderAll();
-
   } catch (err) {
     console.error(err);
-
-    alert(
-      '讀取資料失敗：' +
-      err.message
-    );
+    alert('讀取資料失敗：' + err.message);
   }
 }
 
+function showPage(pageID) {
+  document.querySelectorAll('.page')
+    .forEach(page => page.classList.remove('active'));
 
+  $(pageID).classList.add('active');
 
-function getDateParts(dateValue) {
-  const text = String(dateValue || '');
-
-  if (!/^\d{4}-\d{2}-\d{2}/.test(text)) {
-    return {
-      year: '',
-      month: ''
-    };
-  }
-
-  return {
-    year: text.slice(0, 4),
-    month: text.slice(5, 7)
-  };
+  if (pageID === 'dashboard') renderDashboard();
+  if (pageID === 'daily') renderDaily();
+  if (pageID === 'persons') renderPersons();
 }
 
+function activePersons() {
+  return state.persons.filter(p => p.Status !== '停用');
+}
 
-function getYearsFromRows(rows) {
+function getPerson(id) {
+  return state.persons.find(
+    p => String(p.ID) === String(id)
+  ) || null;
+}
+
+function personHasUS(personID) {
+  const person = getPerson(personID);
+  if (!person) return false;
+
+  return (
+    person.MarketScope === '美股' ||
+    person.MarketScope === '台/美股'
+  );
+}
+
+function refreshAllFilters() {
+  refreshDashboardFilters();
+  refreshDailyFilters();
+}
+
+function getAllYears() {
   return [...new Set(
-    rows
-      .map(row => getDateParts(row.Date).year)
+    state.daily
+      .map(r => String(r.Date || '').slice(0,4))
       .filter(Boolean)
-  )]
-    .sort((a, b) => Number(b) - Number(a));
+  )].sort((a,b) => Number(b)-Number(a));
 }
 
+function getLatestAvailableDate() {
+  const dates = state.daily
+    .map(r => String(r.Date || ''))
+    .filter(Boolean)
+    .sort((a,b) => b.localeCompare(a));
 
-function buildYearSelect(selectEl, rows, preserveValue = true) {
-  if (!selectEl) return;
-
-  const oldValue =
-    preserveValue
-      ? selectEl.value
-      : '';
-
-  const years =
-    getYearsFromRows(rows);
-
-  selectEl.innerHTML =
-    '<option value="">全部年份</option>' +
-    years
-      .map(
-        year =>
-          `<option value="${year}">${year}年</option>`
-      )
-      .join('');
-
-  if (
-    oldValue &&
-    years.includes(oldValue)
-  ) {
-    selectEl.value =
-      oldValue;
-  }
+  return dates[0] || '';
 }
 
-
-function buildMonthSelect(selectEl, preserveValue = true) {
-  if (!selectEl) return;
-
-  const oldValue =
-    preserveValue
-      ? selectEl.value
-      : '';
-
-  selectEl.innerHTML =
-    '<option value="">全部月份</option>' +
-    Array.from(
-      { length: 12 },
-      (_, index) => {
-        const month =
-          String(index + 1).padStart(2, '0');
-
-        return `<option value="${month}">${index + 1}月</option>`;
-      }
-    )
-      .join('');
-
-  if (oldValue) {
-    selectEl.value =
-      oldValue;
-  }
-}
-
-
-function refreshFilterOptions() {
-  const dailyRows =
-    getAllDailyRows();
-
-  const tradeRows =
-    byPerson(state.trades);
-
-  buildYearSelect(
-    dashboardYear,
-    dailyRows
+function getDefaultDashboardDate() {
+  const today = todayString();
+  const hasToday = state.daily.some(
+    r => String(r.Date) === today
   );
 
-
-  buildYearSelect(
-    dailyYear,
-    dailyRows
-  );
-
-  buildMonthSelect(
-    dailyMonth
-  );
-
-  buildMonthSelect(
-    tradeMonth
-  );
+  return hasToday
+    ? today
+    : (getLatestAvailableDate() || today);
 }
 
+function refreshDashboardFilters() {
+  const defaultDate = getDefaultDashboardDate();
 
-function filterRowsByYearMonth(
-  rows,
-  year,
-  month
-) {
-  return rows.filter(row => {
-    const parts =
-      getDateParts(row.Date);
+  const years = getAllYears();
+  const defaultYear = defaultDate.slice(0,4);
 
-    if (
-      year &&
-      parts.year !== year
-    ) {
-      return false;
-    }
-
-    if (
-      month &&
-      parts.month !== month
-    ) {
-      return false;
-    }
-
-    return true;
-  });
-}
-
-
-function handleDailyYearChange() {
-  renderDaily();
-}
-
-
-function handleTradeYearChange() {
-}
-
-
-
-
-
-
-
-
-function getDashboardPersonsForSelectedDate() {
-  const date =
-    getDashboardSelectedDate();
-
-  const personIDs =
-    [...new Set(
-      getAllDailyRows()
-        .filter(
-          row =>
-            String(row.Date || '') ===
-            String(date || '')
-        )
-        .map(
-          row =>
-            String(row.PersonID || '')
-        )
-        .filter(Boolean)
-    )];
-
-  return state.persons
-    .filter(
-      person =>
-        personIDs.includes(
-          String(person.ID)
-        )
-    );
-}
-
-
-function refreshDashboardPersonOptions(
-  preferredID = ''
-) {
-  const select =
-    document.getElementById(
-      'dashboardPersonSelect'
-    );
-
-  if (!select) {
-    return;
+  if (defaultYear && !years.includes(defaultYear)) {
+    years.unshift(defaultYear);
   }
 
-  const persons =
-    getDashboardPersonsForSelectedDate();
+  $('dashboardYear').innerHTML = years
+    .map(y => `<option value="${y}">${y}</option>`)
+    .join('');
 
-  const oldValue =
-    preferredID ||
-    select.value;
+  $('dashboardYear').value = defaultYear || years[0] || '';
 
-  select.innerHTML =
-    persons
-      .map(
-        person =>
-          `<option value="${esc(person.ID)}">${esc(person.Name)}</option>`
-      )
-      .join('');
-
-  if (
-    oldValue &&
-    [...select.options]
-      .some(
-        option =>
-          option.value ===
-          String(oldValue)
-      )
-  ) {
-    select.value =
-      String(oldValue);
-  } else if (select.options.length) {
-    select.value =
-      select.options[0].value;
-  }
+  refreshDashboardMonthOptions(defaultDate.slice(5,7));
+  refreshDashboardDayOptions(defaultDate.slice(8,10));
+  refreshDashboardPersonOptions();
 }
 
+function refreshDashboardMonthOptions(preferred='') {
+  const year = $('dashboardYear').value;
 
-function dashboardSelectedPersonID() {
-  const select =
-    document.getElementById(
-      'dashboardPersonSelect'
-    );
+  const months = [...new Set(
+    state.daily
+      .filter(r => String(r.Date || '').slice(0,4) === year)
+      .map(r => String(r.Date || '').slice(5,7))
+      .filter(Boolean)
+  )].sort((a,b) => Number(b)-Number(a));
 
-  return select
-    ? select.value
-    : '';
-}
-
-
-function handleDashboardPersonChange() {
-  renderDashboard();
-}
-
-
-function getDashboardDateRows() {
-  return getAllDailyRows()
-    .filter(row => row.Date)
-    .slice()
-    .sort(
-      (a, b) =>
-        String(a.Date)
-          .localeCompare(
-            String(b.Date)
-          )
-    );
-}
-
-
-function setDashboardDateToToday() {
-  const today =
-    getTodayDateString();
-
-  const year =
-    today.slice(0, 4);
-
-  const month =
-    today.slice(5, 7);
-
-  const day =
-    today.slice(8, 10);
-
-  dashboardYear.value =
-    year;
-
-  refreshDashboardMonthOptions(
-    month,
-    day
-  );
-}
-
-
-function refreshDashboardMonthOptions(
-  preferredMonth = '',
-  preferredDay = ''
-) {
-  const year =
-    dashboardYear.value || '';
-
-  const rows =
-    getDashboardDateRows();
-
-  const monthsFromData =
-    [...new Set(
-      rows
-        .filter(
-          row =>
-            String(row.Date)
-              .slice(0, 4) ===
-            year
-        )
-        .map(
-          row =>
-            String(row.Date)
-              .slice(5, 7)
-        )
-    )]
-      .filter(Boolean);
-
-  const today =
-    getTodayDateString();
-
-  const todayMonth =
-    today.slice(5, 7);
-
-  if (
-    year === today.slice(0, 4) &&
-    !monthsFromData.includes(todayMonth)
-  ) {
-    monthsFromData.push(todayMonth);
+  if (preferred && !months.includes(preferred)) {
+    months.push(preferred);
+    months.sort((a,b) => Number(b)-Number(a));
   }
 
-  const months =
-    monthsFromData.sort(
-      (a, b) =>
-        Number(b) - Number(a)
-    );
+  $('dashboardMonth').innerHTML = months
+    .map(m => `<option value="${m}">${Number(m)} 月</option>`)
+    .join('');
 
-  const oldValue =
-    preferredMonth ||
-    dashboardMonth.value;
-
-  dashboardMonth.innerHTML =
-    months
-      .map(
-        month =>
-          `<option value="${month}">${Number(month)}月</option>`
-      )
-      .join('');
-
-  if (
-    oldValue &&
-    months.includes(oldValue)
-  ) {
-    dashboardMonth.value =
-      oldValue;
+  if (preferred && months.includes(preferred)) {
+    $('dashboardMonth').value = preferred;
   } else if (months.length) {
-    dashboardMonth.value =
-      months[0];
+    $('dashboardMonth').value = months[0];
   }
-
-  refreshDashboardDayOptions(
-    preferredDay
-  );
 }
 
+function refreshDashboardDayOptions(preferred='') {
+  const year = $('dashboardYear').value;
+  const month = $('dashboardMonth').value;
 
-function refreshDashboardDayOptions(
-  preferredDay = ''
-) {
-  const year =
-    dashboardYear.value || '';
+  const days = [...new Set(
+    state.daily
+      .filter(r => String(r.Date || '').slice(0,7) === `${year}-${month}`)
+      .map(r => String(r.Date || '').slice(8,10))
+      .filter(Boolean)
+  )].sort((a,b) => Number(b)-Number(a));
 
-  const month =
-    dashboardMonth.value || '';
-
-  const rows =
-    getDashboardDateRows();
-
-  const daysFromData =
-    [...new Set(
-      rows
-        .filter(
-          row =>
-            String(row.Date)
-              .slice(0, 7) ===
-            `${year}-${month}`
-        )
-        .map(
-          row =>
-            String(row.Date)
-              .slice(8, 10)
-        )
-    )]
-      .filter(Boolean);
-
-  const today =
-    getTodayDateString();
-
-  const todayDay =
-    today.slice(8, 10);
-
-  if (
-    `${year}-${month}` ===
-      today.slice(0, 7) &&
-    !daysFromData.includes(todayDay)
-  ) {
-    daysFromData.push(todayDay);
+  if (preferred && !days.includes(preferred)) {
+    days.push(preferred);
+    days.sort((a,b) => Number(b)-Number(a));
   }
 
-  const days =
-    daysFromData.sort(
-      (a, b) =>
-        Number(b) - Number(a)
-    );
+  $('dashboardDay').innerHTML = days
+    .map(d => `<option value="${d}">${Number(d)} 日</option>`)
+    .join('');
 
-  const oldValue =
-    preferredDay ||
-    dashboardDay.value;
-
-  dashboardDay.innerHTML =
-    days
-      .map(
-        day =>
-          `<option value="${day}">${Number(day)}日</option>`
-      )
-      .join('');
-
-  if (
-    oldValue &&
-    days.includes(oldValue)
-  ) {
-    dashboardDay.value =
-      oldValue;
+  if (preferred && days.includes(preferred)) {
+    $('dashboardDay').value = preferred;
   } else if (days.length) {
-    dashboardDay.value =
-      days[0];
+    $('dashboardDay').value = days[0];
   }
 }
 
+function dashboardSelectedDate() {
+  const y = $('dashboardYear').value;
+  const m = $('dashboardMonth').value;
+  const d = $('dashboardDay').value;
+
+  if (!y || !m || !d) return '';
+  return `${y}-${m}-${d}`;
+}
+
+function refreshDashboardPersonOptions() {
+  const date = dashboardSelectedDate();
+
+  const ids = [...new Set(
+    state.daily
+      .filter(r => String(r.Date || '') === date)
+      .map(r => String(r.PersonID || ''))
+      .filter(Boolean)
+  )];
+
+  const persons = state.persons.filter(
+    p => ids.includes(String(p.ID))
+  );
+
+  const old = $('dashboardPerson').value;
+
+  $('dashboardPerson').innerHTML = persons
+    .map(p => `<option value="${esc(p.ID)}">${esc(p.Name)}</option>`)
+    .join('');
+
+  if (old && persons.some(p => String(p.ID) === old)) {
+    $('dashboardPerson').value = old;
+  }
+}
 
 function handleDashboardYearChange() {
   refreshDashboardMonthOptions();
+  refreshDashboardDayOptions();
   refreshDashboardPersonOptions();
   renderDashboard();
 }
-
 
 function handleDashboardMonthChange() {
   refreshDashboardDayOptions();
@@ -1700,1854 +886,448 @@ function handleDashboardMonthChange() {
   renderDashboard();
 }
 
-
-function getDashboardSelectedDate() {
-  const year =
-    dashboardYear.value || '';
-
-  const month =
-    dashboardMonth.value || '';
-
-  const day =
-    dashboardDay.value || '';
-
-  if (
-    !year ||
-    !month ||
-    !day
-  ) {
-    return '';
-  }
-
-  return `${year}-${month}-${day}`;
-}
-
-
-
-function getActivePersonOptions() {
-  return activePersons()
-    .map(
-      p =>
-        `<option value="${esc(p.ID)}">${esc(p.Name)}</option>`
-    )
-    .join('');
-}
-
-
-function fillDailyPersonSelect(
-  preferredID = ''
-) {
-  const select =
-    document.getElementById(
-      'dailyPersonID'
-    );
-
-  if (!select) {
-    return;
-  }
-
-  select.innerHTML =
-    getActivePersonOptions();
-
-  if (
-    preferredID &&
-    [...select.options]
-      .some(
-        option =>
-          option.value ===
-          String(preferredID)
-      )
-  ) {
-    select.value =
-      String(preferredID);
-  }
-}
-
-
-function getAllDailyRows() {
-  return (state.daily || [])
-    .slice();
-}
-
-
-function getDailyRowsByDate(
-  date
-) {
-  return getAllDailyRows()
-    .filter(
-      row =>
-        String(row.Date || '') ===
-        String(date || '')
-    );
-}
-
-
-function getTodayDateString() {
-  const now =
-    new Date();
-
-  const year =
-    now.getFullYear();
-
-  const month =
-    String(
-      now.getMonth() + 1
-    ).padStart(2, '0');
-
-  const day =
-    String(
-      now.getDate()
-    ).padStart(2, '0');
-
-  return `${year}-${month}-${day}`;
-}
-
-
-function getDashboardDateRows() {
-  return byPerson(state.daily)
-    .filter(row => row.Date)
-    .slice()
-    .sort(
-      (a, b) =>
-        String(a.Date)
-          .localeCompare(
-            String(b.Date)
-          )
-    );
-}
-
-
-
-function currentPersonHasUSMarket() {
-  const dailySelect =
-    document.getElementById(
-      'dailyPersonID'
-    );
-
-  const personID =
-    (
-      dailyDialog &&
-      dailyDialog.open &&
-      dailySelect &&
-      dailySelect.value
-    )
-      ? dailySelect.value
-      : '';
-
-  if (!personID) {
-    // 在一般頁面顯示全部欄位，
-    // 不因單一人員市場別隱藏。
-    return true;
-  }
-
-  const person =
-    state.persons.find(
-      p =>
-        String(p.ID) ===
-        String(personID)
-    );
-
-  if (!person) {
-    return true;
-  }
-
-  const scope =
-    person.MarketScope ||
-    '台/美股';
-
-  return (
-    scope === '美股' ||
-    scope === '台/美股'
-  );
-}
-
-
-function updateMarketVisibility() {
-  const dailySelect =
-    document.getElementById(
-      'dailyPersonID'
-    );
-
-  const dialogOpen =
-    typeof dailyDialog !==
-      'undefined' &&
-    dailyDialog.open;
-
-  const showUS =
-    dialogOpen &&
-    dailySelect
-      ? currentPersonHasUSMarket()
-      : true;
-
-  document
-    .querySelectorAll(
-      '.market-us-only'
-    )
-    .forEach(el => {
-      // 日常頁面全部顯示；只有每日資產 Dialog 開啟時
-      // 才依選定人員市場別控制美股輸入欄。
-      if (
-        dialogOpen &&
-        dailyDialog.contains(el)
-      ) {
-        el.classList.toggle(
-          'is-hidden',
-          !showUS
-        );
-      } else {
-        el.classList.remove(
-          'is-hidden'
-        );
-      }
-    });
-}
-
-
-
-function renderAll() {
-  const person =
-    selectedPerson();
-
-  const personName =
-    person
-      ? person.Name
-      : '尚未選擇人員';
-
-  dailyPersonText.textContent =
-    '目前人員：' + personName;
-
-  refreshFilterOptions();
-
-  updateMarketVisibility();
-
+function handleDashboardDayChange() {
+  refreshDashboardPersonOptions();
   renderDashboard();
-  renderDaily();
-  renderPersons();
 }
 
-
-/* =========================================================
- * Dashboard
- * ========================================================= */
+function resetDashboardCards() {
+  $('dTotalAsset').textContent = 'NT$ 0';
+  $('dTWOpen').textContent = 'NT$ 0';
+  $('dTWClose').textContent = 'NT$ 0';
+  $('dTWRate').textContent = '水位 0%';
+  $('dUSOpen').textContent = 'US$ 0';
+  $('dUSClose').textContent = 'US$ 0';
+  $('dUSRate').textContent = '水位 0%';
+  $('dBank').textContent = 'NT$ 0';
+  $('dTrade').textContent = 'NT$ 0';
+  $('dBankAfter').textContent = 'NT$ 0';
+  $('dAdjustmentType').textContent = '—';
+  $('dAdjustmentAmount').textContent = 'NT$ 0';
+}
 
 function renderDashboard() {
-  const selectedYear =
-    dashboardYear.value ||
-    String(
-      new Date().getFullYear()
-    );
+  const date = dashboardSelectedDate();
+  const personID = $('dashboardPerson').value;
 
-  const rows =
-    filterRowsByYearMonth(
-      state.daily.filter(
-      row =>
-        String(row.PersonID) ===
-        String(dashboardSelectedPersonID())
-    ),
-      selectedYear,
-      ''
-    )
-      .filter(
-        x => x.Date
-      )
-      .sort(
-        (a,b) =>
-          String(a.Date)
-            .localeCompare(
-              String(b.Date)
-            )
-      );
+  const row = state.daily.find(
+    r =>
+      String(r.Date || '') === date &&
+      String(r.PersonID || '') === String(personID)
+  );
 
-  const selectedDate =
-    getDashboardSelectedDate() ||
-    getTodayDateString();
-
-  const latest =
-    rows.find(
-      row =>
-        String(row.Date) ===
-        selectedDate
-    ) || null;
-
-  dashboardDataDate.textContent =
-    latest
+  $('dashboardDataDate').textContent =
+    date
       ? '資料日期：' +
-        String(latest.Date)
-          .replaceAll('-', '/')
-      : '資料日期：' +
-        selectedDate.replaceAll('-', '/') +
+        date.replaceAll('-','/') +
         (
-          selectedDate ===
-          getTodayDateString()
-            ? '（今日無資料）'
-            : '（該日期無資料）'
-        );
+          date !== todayString()
+            ? '（最近資料）'
+            : ''
+        )
+      : '資料日期：—';
 
-  if (!latest) {
-    dTotal.textContent =
-      'NT$ 0';
-
-    dTWOpen.textContent =
-      'NT$ 0';
-
-    dTW.textContent =
-      'NT$ 0';
-
-    dTWPosition.textContent =
-      '水位 0%';
-
-    dUSOpen.textContent =
-      'US$ 0';
-
-    dUS.textContent =
-      'US$ 0';
-
-    dUSPosition.textContent =
-      '水位 0%';
-
-    dBank.textContent =
-      'NT$ 0';
-
-    dTodayTrade.textContent =
-      'NT$ 0';
-
-    dBankAfterTrade.textContent =
-      'NT$ 0';
-
-    dAdjustmentLabel.textContent =
-      '可佈局 / 調節';
-
-    dAdjustment.textContent =
-      'NT$ 0';
-
-    if (assetChart) {
-      assetChart.destroy();
-      assetChart = null;
-    }
-
+  if (!row) {
+    resetDashboardCards();
+    renderDashboardChart();
     return;
   }
 
-  dTotal.textContent =
-    fmtTWD(
-      latest.TotalAsset
-    );
+  $('dTotalAsset').textContent = fmtTWD(row.TotalAsset);
+  $('dTWOpen').textContent = fmtTWD(row.TWOpenValue);
+  $('dTWClose').textContent = fmtTWD(row.TWCloseValue);
+  $('dTWRate').textContent =
+    `水位 ${Number(row.TWPositionRate || 0).toFixed(2)}%`;
 
-  dTWOpen.textContent =
-    fmtTWD(
-      latest.TWOpenValue
-    );
+  $('dUSOpen').textContent = fmtUSD(row.USOpenValue);
+  $('dUSClose').textContent = fmtUSD(row.USCloseValue);
+  $('dUSRate').textContent =
+    `水位 ${Number(row.USPositionRate || 0).toFixed(2)}%`;
 
-  dTW.textContent =
-    fmtTWD(
-      latest.TWCloseValue
-    );
+  $('dBank').textContent = fmtTWD(row.BankBalance);
+  $('dTrade').textContent = fmtTWD(row.TodayTradeAmount);
+  $('dBankAfter').textContent = fmtTWD(row.BankAfterTrade);
+  $('dAdjustmentType').textContent = row.AdjustmentType || '—';
+  $('dAdjustmentAmount').textContent = fmtTWD(row.AdjustmentAmount);
 
-  dTWPosition.textContent =
-    '水位 ' +
-    Number(
-      latest.TWPositionRate || 0
-    ).toFixed(2)
-    + '%';
+  const showUS = personHasUS(personID);
 
-  dUSOpen.textContent =
-    fmtUSD(
-      latest.USOpenValue
-    );
+  document.querySelectorAll('#dashboard .market-us-only')
+    .forEach(el => el.classList.toggle('hidden', !showUS));
 
-  dUS.textContent =
-    fmtUSD(
-      latest.USCloseValue
-    );
+  renderDashboardChart();
+}
 
-  dUSPosition.textContent =
-    '水位 ' +
-    Number(
-      latest.USPositionRate || 0
-    ).toFixed(2)
-    + '%';
+function renderDashboardChart() {
+  const year = $('dashboardYear').value;
+  const personID = $('dashboardPerson').value;
 
-  dBank.textContent =
-    fmtTWD(
-      latest.BankBalance
-    );
+  const rows = state.daily
+    .filter(
+      r =>
+        String(r.PersonID) === String(personID) &&
+        String(r.Date || '').startsWith(year)
+    )
+    .sort((a,b) => String(a.Date).localeCompare(String(b.Date)));
 
-  dTodayTrade.textContent =
-    fmtTWD(
-      latest.TodayTradeAmount
-    );
-
-  dBankAfterTrade.textContent =
-    fmtTWD(
-      latest.BankAfterTrade
-    );
-
-  dAdjustmentLabel.textContent =
-    latest.AdjustmentType ||
-    '可佈局 / 調節';
-
-  dAdjustment.textContent =
-    fmtTWD(
-      latest.AdjustmentAmount
-    );
+  const ctx = $('assetChart');
 
   if (assetChart) {
     assetChart.destroy();
   }
 
-  assetChart =
-    new Chart(
-      document
-        .getElementById(
-          'assetChart'
-        ),
-      {
-        type:'line',
-
-        data:{
-          labels:
-            rows.map(
-              x => x.Date
-            ),
-
-          datasets:[
-            {
-              label:'總資產',
-
-              data:
-                rows.map(
-                  x =>
-                    Number(
-                      x.TotalAsset || 0
-                    )
-                ),
-
-              tension:.3
-            },
-
-            {
-              label:'開盤台股市值',
-
-              data:
-                rows.map(
-                  x =>
-                    Number(
-                      x.TWOpenValue || 0
-                    )
-                ),
-
-              tension:.3
-            },
-
-            {
-              label:'收盤台股市值',
-
-              data:
-                rows.map(
-                  x =>
-                    Number(
-                      x.TWCloseValue || 0
-                    )
-                ),
-
-              tension:.3
-            }
-          ]
+  assetChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: rows.map(r => r.Date),
+      datasets: [
+        {
+          label: '總資產',
+          data: rows.map(r => Number(r.TotalAsset || 0)),
+          tension: .3
         },
-
-        options:{
-          responsive:true,
-          maintainAspectRatio:false
+        {
+          label: '開盤台股市值',
+          data: rows.map(r => Number(r.TWOpenValue || 0)),
+          tension: .3
+        },
+        {
+          label: '收盤台股市值',
+          data: rows.map(r => Number(r.TWCloseValue || 0)),
+          tension: .3
         }
-      }
-    );
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true
+    }
+  });
 }
 
+function refreshDailyFilters() {
+  const years = getAllYears();
 
-/* =========================================================
- * 每日資產
- * ========================================================= */
+  $('dailyYear').innerHTML =
+    '<option value="">全部年份</option>' +
+    years.map(y => `<option value="${y}">${y}</option>`).join('');
+
+  $('dailyMonth').innerHTML =
+    '<option value="">全部月份</option>' +
+    Array.from({length:12}, (_,i) => {
+      const m = String(i+1).padStart(2,'0');
+      return `<option value="${m}">${i+1} 月</option>`;
+    }).join('');
+}
 
 function renderDaily() {
-  const selectedYear =
-    dailyYear.value || '';
+  const year = $('dailyYear').value;
+  const month = $('dailyMonth').value;
 
-  const selectedMonth =
-    dailyMonth.value || '';
-
-  const rows =
-    filterRowsByYearMonth(
-      getAllDailyRows(),
-      selectedYear,
-      selectedMonth
-    )
-      .sort(
-        (a,b) =>
-          String(
-            b.Date || ''
-          )
-            .localeCompare(
-              String(
-                a.Date || ''
-              )
-            )
-      );
+  const rows = state.daily
+    .filter(r => {
+      const date = String(r.Date || '');
+      if (year && !date.startsWith(year)) return false;
+      if (month && date.slice(5,7) !== month) return false;
+      return true;
+    })
+    .sort((a,b) => String(b.Date).localeCompare(String(a.Date)));
 
   if (!rows.length) {
-    const colspan =
-      currentPersonHasUSMarket()
-        ? 16
-        : 13;
-
-    dailyBody.innerHTML =
-      `<tr><td colspan="${colspan}" class="empty">此篩選條件下沒有每日資產</td></tr>`;
-
+    $('dailyBody').innerHTML =
+      '<tr><td colspan="14" class="empty">尚無每日資產資料</td></tr>';
     return;
   }
 
-  dailyBody.innerHTML =
-    rows
-      .map(
-        r =>
-          `
-          <tr>
+  $('dailyBody').innerHTML = rows.map(r => {
+    const showUS = personHasUS(r.PersonID);
 
-          <td>
-          ${esc(r.Date)}
-          </td>
+    return `
+      <tr>
+        <td>${esc(r.Date)}</td>
+        <td>${esc(r.PersonName)}</td>
+        <td>${fmtTWD(r.TWOpenValue)}</td>
+        <td>${fmtTWD(r.TWCloseValue)}</td>
+        <td>${Number(r.TWPositionRate || 0).toFixed(2)}%</td>
 
-          <td>
-          ${esc(r.PersonName || '')}
-          </td>
+        <td class="market-us-only ${showUS ? '' : 'hidden'}">${fmtUSD(r.USOpenValue)}</td>
+        <td class="market-us-only ${showUS ? '' : 'hidden'}">${fmtUSD(r.USCloseValue)}</td>
+        <td class="market-us-only ${showUS ? '' : 'hidden'}">${Number(r.USPositionRate || 0).toFixed(2)}%</td>
 
-          <td>
-          ${fmtTWD(r.TWOpenValue)}
-          </td>
-
-          <td>
-          ${fmtTWD(r.TWCloseValue)}
-          </td>
-
-          <td>
-          ${Number(r.TWPositionRate || 0).toFixed(2)}%
-          </td>
-
-          <td class="market-us-only">
-          ${fmtUSD(r.USOpenValue)}
-          </td>
-
-          <td class="market-us-only">
-          ${fmtUSD(r.USCloseValue)}
-          </td>
-
-          <td class="market-us-only">
-          ${Number(r.USPositionRate || 0).toFixed(2)}%
-          </td>
-
-          <td>
-          ${fmtTWD(r.BankBalance)}
-          </td>
-
-          <td>
-          ${fmtTWD(r.TodayTradeAmount)}
-          </td>
-
-          <td>
-          ${fmtTWD(r.BankAfterTrade)}
-          </td>
-
-          <td>
-          ${esc(r.AdjustmentType)}
-          </td>
-
-          <td>
-          ${fmtTWD(r.AdjustmentAmount)}
-          </td>
-
-          <td>
-          <b>
-          ${fmtTWD(r.TotalAsset)}
-          </b>
-          </td>
-
-          <td
-          class="${
-            Number(r.DailyChange || 0) >= 0
-              ? 'up'
-              : 'down'
-          }">
-
-          ${
-            Number(r.DailyChange || 0) >= 0
-              ? '+'
-              : ''
-          }
-
-          ${Math.round(
-            Number(
-              r.DailyChange || 0
-            )
-          ).toLocaleString()}
-
-          </td>
-
-          <td>
-
-          <button
-          class="small secondary"
-          onclick="editDaily('${esc(r.ID)}')">
-          修改
-          </button>
-
-          <button
-          class="small danger"
-          onclick="deleteDaily('${esc(r.ID)}')">
-          刪除
-          </button>
-
-          </td>
-
-          </tr>
-          `
-      )
-      .join('');
+        <td>${fmtTWD(r.BankBalance)}</td>
+        <td>${fmtTWD(r.TodayTradeAmount)}</td>
+        <td>${fmtTWD(r.BankAfterTrade)}</td>
+        <td>${esc(r.AdjustmentType)}</td>
+        <td>${fmtTWD(r.AdjustmentAmount)}</td>
+        <td>
+          <button onclick="editDaily('${esc(r.ID)}')">編輯</button>
+          <button class="danger" onclick="deleteDaily('${esc(r.ID)}')">刪除</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
 }
 
+function fillDailyPersonSelect(preferred='') {
+  $('dailyPersonID').innerHTML = activePersons()
+    .map(p => `<option value="${esc(p.ID)}">${esc(p.Name)}</option>`)
+    .join('');
+
+  if (
+    preferred &&
+    [...$('dailyPersonID').options]
+      .some(o => o.value === String(preferred))
+  ) {
+    $('dailyPersonID').value = String(preferred);
+  }
+}
+
+function updateDailyMarketVisibility() {
+  const showUS = personHasUS($('dailyPersonID').value);
+
+  document.querySelectorAll('.daily-us-field')
+    .forEach(el => el.classList.toggle('hidden', !showUS));
+}
+
+function updateBankAfterTradePreview() {
+  const bank = Number($('bankBalance').value || 0);
+  const trade = Number($('todayTradeAmount').value || 0);
+  $('bankAfterTradePreview').value = bank - trade;
+}
 
 function openDailyDialog() {
-  if (
-    !activePersons().length
-  ) {
-    return alert(
-      '請先新增人員'
-    );
+  if (!activePersons().length) {
+    return alert('請先新增人員');
   }
 
-  dailyDialogTitle.textContent =
-    '新增每日資產';
-
-  dailyID.value =
-    '';
+  $('dailyDialogTitle').textContent = '新增每日資產';
+  $('dailyID').value = '';
 
   fillDailyPersonSelect();
 
-  dailyDate.value =
-    getTodayDateString();
+  $('dailyDate').value = todayString();
+  $('twOpenValue').value = 0;
+  $('twCloseValue').value = 0;
+  $('twPositionRate').value = 0;
+  $('usOpenValue').value = 0;
+  $('usCloseValue').value = 0;
+  $('usPositionRate').value = 0;
+  $('bankBalance').value = 0;
+  $('todayTradeAmount').value = 0;
+  $('bankAfterTradePreview').value = 0;
+  $('adjustmentType').value = '可佈局';
+  $('adjustmentAmount').value = 0;
 
-  twOpenValue.value =
-    0;
+  updateDailyMarketVisibility();
 
-  twCloseValue.value =
-    0;
-
-  twPositionRate.value =
-    0;
-
-  usOpenValue.value =
-    0;
-
-  usCloseValue.value =
-    0;
-
-  usPositionRate.value =
-    0;
-
-  bankBalance.value =
-    0;
-
-  todayTradeAmount.value =
-    0;
-
-  bankAfterTradePreview.value =
-    0;
-
-  adjustmentType.value =
-    '可佈局';
-
-  adjustmentAmount.value =
-    0;
-
-  dailyDialog.showModal();
-
-  updateMarketVisibility();
+  $('dailyDialog').showModal();
 }
 
 function editDaily(id) {
-  const row =
-    state.daily.find(
-      x =>
-        String(x.ID) ===
-        String(id)
-    );
+  const row = state.daily.find(r => String(r.ID) === String(id));
+  if (!row) return;
 
-  if (!row) {
-    return;
-  }
+  $('dailyDialogTitle').textContent = '修改每日資產';
+  $('dailyID').value = row.ID;
 
-  dailyDialogTitle.textContent =
-    '修改每日資產';
+  fillDailyPersonSelect(row.PersonID);
 
-  dailyID.value =
-    row.ID;
+  $('dailyDate').value = row.Date || '';
+  $('twOpenValue').value = row.TWOpenValue || 0;
+  $('twCloseValue').value = row.TWCloseValue || 0;
+  $('twPositionRate').value = row.TWPositionRate || 0;
+  $('usOpenValue').value = row.USOpenValue || 0;
+  $('usCloseValue').value = row.USCloseValue || 0;
+  $('usPositionRate').value = row.USPositionRate || 0;
+  $('bankBalance').value = row.BankBalance || 0;
+  $('todayTradeAmount').value = row.TodayTradeAmount || 0;
+  $('bankAfterTradePreview').value = row.BankAfterTrade || 0;
+  $('adjustmentType').value = row.AdjustmentType || '可佈局';
+  $('adjustmentAmount').value = row.AdjustmentAmount || 0;
 
-  fillDailyPersonSelect(
-    row.PersonID
-  );
+  updateDailyMarketVisibility();
 
-  dailyDate.value =
-    row.Date || '';
-
-  twOpenValue.value =
-    row.TWOpenValue || 0;
-
-  twCloseValue.value =
-    row.TWCloseValue || 0;
-
-  twPositionRate.value =
-    row.TWPositionRate || 0;
-
-  usOpenValue.value =
-    row.USOpenValue || 0;
-
-  usCloseValue.value =
-    row.USCloseValue || 0;
-
-  usPositionRate.value =
-    row.USPositionRate || 0;
-
-  bankBalance.value =
-    row.BankBalance || 0;
-
-  todayTradeAmount.value =
-    row.TodayTradeAmount || 0;
-
-  bankAfterTradePreview.value =
-    row.BankAfterTrade || 0;
-
-  adjustmentType.value =
-    row.AdjustmentType ||
-    '可佈局';
-
-  adjustmentAmount.value =
-    row.AdjustmentAmount || 0;
-
-  dailyDialog.showModal();
-
-  updateMarketVisibility();
+  $('dailyDialog').showModal();
 }
 
 async function saveDaily() {
-const personID =
-    dailyPersonID.value;
+  const personID = $('dailyPersonID').value;
 
   if (!personID) {
-    return alert(
-      '請選擇人員'
-    );
+    return alert('請選擇人員');
   }
 
   const data = {
-    ID:
-      dailyID.value || '',
+    ID: $('dailyID').value,
+    PersonID: personID,
+    Date: $('dailyDate').value,
 
-    PersonID:
-      personID,
+    TWOpenValue: Number($('twOpenValue').value || 0),
+    TWCloseValue: Number($('twCloseValue').value || 0),
+    TWPositionRate: Number($('twPositionRate').value || 0),
 
-    Date:
-      dailyDate.value,
+    USOpenValue: Number($('usOpenValue').value || 0),
+    USCloseValue: Number($('usCloseValue').value || 0),
+    USPositionRate: Number($('usPositionRate').value || 0),
 
-    TWOpenValue:
-      +twOpenValue.value || 0,
+    BankBalance: Number($('bankBalance').value || 0),
+    TodayTradeAmount: Number($('todayTradeAmount').value || 0),
 
-    TWCloseValue:
-      +twCloseValue.value || 0,
-
-    TWPositionRate:
-      +twPositionRate.value || 0,
-
-    USOpenValue:
-      +usOpenValue.value || 0,
-
-    USCloseValue:
-      +usCloseValue.value || 0,
-
-    USPositionRate:
-      +usPositionRate.value || 0,
-
-    BankBalance:
-      +bankBalance.value || 0,
-
-    TodayTradeAmount:
-      +todayTradeAmount.value || 0,
-
-    AdjustmentType:
-      adjustmentType.value,
-
-    AdjustmentAmount:
-      +adjustmentAmount.value || 0
+    AdjustmentType: $('adjustmentType').value,
+    AdjustmentAmount: Number($('adjustmentAmount').value || 0)
   };
 
-  setSaving(
-    dailySaveBtn,
-    true
-  );
+  setSaving($('dailySaveBtn'), true);
 
   try {
-    const res =
-      await apiPost({
-        action:
-          dailyID.value
-            ? 'updateDaily'
-            : 'saveDaily',
-
-        data
-      });
+    const res = await apiPost({
+      action: data.ID ? 'updateDaily' : 'saveDaily',
+      data
+    });
 
     if (!res.success) {
-      return alert(
-        res.message
-      );
+      throw new Error(res.message || '儲存失敗');
     }
 
-    // V31：只替換目前人員的每日資產，不再整站 loadAll
-    if (
-      Array.isArray(res.daily)
-    ) {
-      state.daily =
-        replaceRowsForPerson(
-          state.daily,
-          personID,
-          res.daily
-        );
-
-      refreshFilterOptions();
-      renderDaily();
-      renderDashboard();
-
-      dailyDialog.close();
-      return;
-    }
-
-    // 舊版後端相容 fallback
-    dailyDialog.close();
+    $('dailyDialog').close();
     await loadAll();
-
   } catch (err) {
     console.error(err);
-
-    alert(
-      '儲存失敗：' +
-      err.message
-    );
+    alert('儲存失敗：' + err.message);
   } finally {
-    setSaving(
-      dailySaveBtn,
-      false
-    );
+    setSaving($('dailySaveBtn'), false);
   }
 }
 
 async function deleteDaily(id) {
-  if (
-    !confirm(
-      '確定刪除這筆每日資產？'
-    )
-  ) {
-    return;
-  }
-
-  const res =
-    await apiPost({
-      action:
-        'deleteDaily',
-
-      id
-    });
-
-  if (!res.success) {
-    return alert(
-      res.message
-    );
-  }
-
-  await loadAll();
-}
-
-
-/* =========================================================
- * 股票庫存
- * ========================================================= */
-
-function renderInventory() {
-  const rows =
-    byPerson(
-      state.inventory
-    );
-
-  if (!rows.length) {
-    inventoryBody.innerHTML =
-      '<tr><td colspan="8" class="empty">目前沒有庫存</td></tr>';
-
-  } else {
-    inventoryBody.innerHTML =
-      rows
-        .map(
-          r =>
-            `
-            <tr>
-
-            <td>
-            ${
-              r.Market === 'US'
-                ? '美股'
-                : '台股'
-            }
-            </td>
-
-            <td>
-            <b>${esc(r.StockCode)}</b>
-            </td>
-
-            <td>
-            ${Number(r.Quantity || 0).toLocaleString()}
-            </td>
-
-            <td>
-            ${Number(r.AverageCost || 0).toLocaleString()}
-            </td>
-
-            <td>
-            ${Number(r.CurrentPrice || 0).toLocaleString()}
-            </td>
-
-            <td>
-            ${Number(r.MarketValue || 0).toLocaleString()}
-            </td>
-
-            <td
-            class="${
-              Number(r.UnrealizedProfit || 0) >= 0
-                ? 'up'
-                : 'down'
-            }">
-
-            ${Number(r.UnrealizedProfit || 0).toLocaleString()}
-
-            </td>
-
-            <td>
-            ${Number(r.ReturnRate || 0).toFixed(2)}%
-            </td>
-
-            </tr>
-            `
-        )
-        .join('');
-  }
-
-  const bases =
-    byPerson(
-      state.baseInventory
-    );
-
-  if (!bases.length) {
-    baseBody.innerHTML =
-      '<tr><td colspan="6" class="empty">尚無期初庫存</td></tr>';
-
-    return;
-  }
-
-  baseBody.innerHTML =
-    bases
-      .map(
-        r =>
-          `
-          <tr>
-
-          <td>
-          ${
-            r.Market === 'US'
-              ? '美股'
-              : '台股'
-          }
-          </td>
-
-          <td>
-          <b>${esc(r.StockCode)}</b>
-          </td>
-
-          <td>
-          ${Number(r.Quantity || 0).toLocaleString()}
-          </td>
-
-          <td>
-          ${Number(r.AverageCost || 0).toLocaleString()}
-          </td>
-
-          <td>
-          ${Number(r.CurrentPrice || 0).toLocaleString()}
-          </td>
-
-          <td>
-
-          <button
-          class="small danger"
-          onclick="deleteBase('${esc(r.ID)}')">
-          刪除
-          </button>
-
-          </td>
-
-          </tr>
-          `
-      )
-      .join('');
-}
-
-
-
-function getAllowedMarketsForCurrentPerson() {
-  const person =
-    selectedPerson();
-
-  if (!person) {
-    return ['TW', 'US'];
-  }
-
-  const scope =
-    person.MarketScope ||
-    '台/美股';
-
-  if (scope === '台股') {
-    return ['TW'];
-  }
-
-  if (scope === '美股') {
-    return ['US'];
-  }
-
-  return ['TW', 'US'];
-}
-
-
-function fillMarketSelect(selectEl) {
-  const allowed =
-    getAllowedMarketsForCurrentPerson();
-
-  selectEl.innerHTML =
-    allowed
-      .map(
-        market =>
-          market === 'TW'
-            ? '<option value="TW">台股</option>'
-            : '<option value="US">美股</option>'
-      )
-      .join('');
-}
-
-
-function openBaseDialog() {
-  if (!ensurePerson()) {
-    return;
-  }
-
-  const person =
-    selectedPerson();
-
-  baseDialogPersonText.textContent =
-    '目前人員：' +
-    person.Name;
-
-  fillMarketSelect(
-    baseMarket
-  );
-
-  baseCode.value =
-    '';
-
-  baseQty.value =
-    '';
-
-  baseCost.value =
-    '';
-
-  basePrice.value =
-    '';
-
-  baseDialog.showModal();
-}
-
-
-async function saveBaseInventory() {
-  if (!ensurePerson()) {
-    return;
-  }
-
-  if (
-    !baseCode.value.trim()
-  ) {
-    return alert(
-      '請輸入股票代號'
-    );
-  }
-
-  const personID =
-    selectedPersonID();
-
-  setSaving(
-    baseSaveBtn,
-    true
-  );
+  if (!confirm('確定刪除這筆每日資產嗎？')) return;
 
   try {
-    const res =
-      await apiPost({
-        action:
-          'saveBaseInventory',
-
-        data:{
-          PersonID:
-            personID,
-
-          Market:
-            baseMarket.value,
-
-          StockCode:
-            baseCode.value
-              .trim()
-              .toUpperCase(),
-
-          Quantity:
-            +baseQty.value || 0,
-
-          AverageCost:
-            +baseCost.value || 0,
-
-          CurrentPrice:
-            +basePrice.value || 0
-        }
-      });
-
-    if (!res.success) {
-      return alert(
-        res.message
-      );
-    }
-
-    if (
-      res.baseInventory &&
-      Array.isArray(res.inventory)
-    ) {
-      state.baseInventory =
-        upsertById(
-          state.baseInventory,
-          res.baseInventory
-        );
-
-      state.inventory =
-        replaceRowsForPerson(
-          state.inventory,
-          personID,
-          res.inventory
-        );
-
-      baseDialog.close();
-      return;
-    }
-
-    baseDialog.close();
-    await loadAll();
-
-  } catch (err) {
-    console.error(err);
-
-    alert(
-      '儲存失敗：' +
-      err.message
-    );
-  } finally {
-    setSaving(
-      baseSaveBtn,
-      false
-    );
-  }
-}
-
-async function deleteBase(id) {
-  if (
-    !confirm(
-      '確定刪除這筆期初庫存？'
-    )
-  ) {
-    return;
-  }
-
-  const res =
-    await apiPost({
-      action:
-        'deleteBaseInventory',
-
+    const res = await apiPost({
+      action:'deleteDaily',
       id
     });
 
-  if (!res.success) {
-    return alert(
-      res.message
-    );
-  }
-
-  await loadAll();
-}
-
-
-/* =========================================================
- * 交易紀錄
- * ========================================================= */
-
-function renderTrades() {
-  const selectedYear =
-    tradeYear.value || '';
-
-  const selectedMonth =
-    tradeMonth.value || '';
-
-  const rows =
-    filterRowsByYearMonth(
-      byPerson(
-        state.trades
-      ),
-      selectedYear,
-      selectedMonth
-    )
-      .sort(
-        (a,b) =>
-          String(
-            b.Date || ''
-          )
-            .localeCompare(
-              String(
-                a.Date || ''
-              )
-            )
-      );
-
-  if (!rows.length) {
-    tradeBody.innerHTML =
-      '<tr><td colspan="8" class="empty">此篩選條件下沒有交易紀錄</td></tr>';
-
-    return;
-  }
-
-  tradeBody.innerHTML =
-    rows
-      .map(
-        r =>
-          `
-          <tr>
-
-          <td>
-          ${esc(r.Date)}
-          </td>
-
-          <td>
-          ${
-            r.Market === 'US'
-              ? '美股'
-              : '台股'
-          }
-          </td>
-
-          <td>
-          <b>${esc(r.StockCode)}</b>
-          </td>
-
-          <td>
-          ${esc(r.TradeType)}
-          </td>
-
-          <td>
-          ${Number(r.Quantity || 0).toLocaleString()}
-          </td>
-
-          <td>
-          ${Number(r.Price || 0).toLocaleString()}
-          </td>
-
-          <td>
-          ${esc(r.Note || '')}
-          </td>
-
-          <td>
-
-          <button
-          class="small secondary"
-          onclick="editTrade('${esc(r.ID)}')">
-          修改
-          </button>
-
-          <button
-          class="small danger"
-          onclick="deleteTrade('${esc(r.ID)}')">
-          刪除
-          </button>
-
-          </td>
-
-          </tr>
-          `
-      )
-      .join('');
-}
-
-
-function openTradeDialog() {
-  if (!ensurePerson()) {
-    return;
-  }
-
-  const person =
-    selectedPerson();
-
-  tradeDialogPersonText.textContent =
-    '目前人員：' +
-    person.Name;
-
-  tradeID.value =
-    '';
-
-  tradeDialogTitle.textContent =
-    '新增交易';
-
-  tradeDate.value =
-    new Date()
-      .toISOString()
-      .slice(0,10);
-
-  fillMarketSelect(
-    tradeMarket
-  );
-
-  tradeCode.value =
-    '';
-
-  tradeType.value =
-    '買進';
-
-  tradeQty.value =
-    '';
-
-  tradePrice.value =
-    '';
-
-  tradeNote.value =
-    '';
-
-  tradeDialog.showModal();
-}
-
-
-function editTrade(id) {
-  const row =
-    state.trades.find(
-      x =>
-        String(x.ID) ===
-        String(id)
-    );
-
-  if (!row) {
-    return;
-  }
-
-  const person =
-    selectedPerson();
-
-  tradeDialogPersonText.textContent =
-    '目前人員：' +
-    person.Name;
-
-  tradeID.value =
-    row.ID;
-
-  tradeDialogTitle.textContent =
-    '修改交易';
-
-  tradeDate.value =
-    row.Date || '';
-
-  fillMarketSelect(
-    tradeMarket
-  );
-
-  tradeMarket.value =
-    row.Market || 'TW';
-
-  tradeCode.value =
-    row.StockCode || '';
-
-  tradeType.value =
-    row.TradeType || '買進';
-
-  tradeQty.value =
-    row.Quantity || 0;
-
-  tradePrice.value =
-    row.Price || 0;
-
-  tradeNote.value =
-    row.Note || '';
-
-  tradeDialog.showModal();
-}
-
-
-async function saveTrade() {
-  if (!ensurePerson()) {
-    return;
-  }
-
-  if (
-    !tradeCode.value.trim()
-  ) {
-    return alert(
-      '請輸入股票代號'
-    );
-  }
-
-  const personID =
-    selectedPersonID();
-
-  const data = {
-    ID:
-      tradeID.value || '',
-
-    PersonID:
-      personID,
-
-    Date:
-      tradeDate.value,
-
-    Market:
-      tradeMarket.value,
-
-    StockCode:
-      tradeCode.value
-        .trim()
-        .toUpperCase(),
-
-    TradeType:
-      tradeType.value,
-
-    Quantity:
-      +tradeQty.value || 0,
-
-    Price:
-      +tradePrice.value || 0,
-
-    RealizedProfit:
-      0,
-
-    Reason:
-      '',
-
-    Note:
-      tradeNote.value.trim()
-  };
-
-  setSaving(
-    tradeSaveBtn,
-    true
-  );
-
-  try {
-    const res =
-      await apiPost({
-        action:
-          tradeID.value
-            ? 'updateTrade'
-            : 'saveTrade',
-
-        data
-      });
-
     if (!res.success) {
-      return alert(
-        res.message
-      );
+      throw new Error(res.message || '刪除失敗');
     }
 
-    if (
-      res.trade &&
-      Array.isArray(res.inventory)
-    ) {
-      state.trades =
-        upsertById(
-          state.trades,
-          res.trade
-        );
-
-      state.inventory =
-        replaceRowsForPerson(
-          state.inventory,
-          personID,
-          res.inventory
-        );
-
-      refreshFilterOptions();
-
-      tradeDialog.close();
-      return;
-    }
-
-    tradeDialog.close();
     await loadAll();
-
   } catch (err) {
-    console.error(err);
-
-    alert(
-      '儲存失敗：' +
-      err.message
-    );
-  } finally {
-    setSaving(
-      tradeSaveBtn,
-      false
-    );
+    alert('刪除失敗：' + err.message);
   }
 }
-
-async function deleteTrade(id) {
-  if (
-    !confirm(
-      '確定刪除這筆交易？庫存會重新計算。'
-    )
-  ) {
-    return;
-  }
-
-  const res =
-    await apiPost({
-      action:
-        'deleteTrade',
-
-      id
-    });
-
-  if (!res.success) {
-    return alert(
-      res.message
-    );
-  }
-
-  await loadAll();
-}
-
-
-/* =========================================================
- * 人員管理
- * ========================================================= */
 
 function renderPersons() {
   if (!state.persons.length) {
-    personBody.innerHTML =
+    $('personBody').innerHTML =
       '<tr><td colspan="5" class="empty">尚無人員</td></tr>';
-
     return;
   }
 
-  personBody.innerHTML =
-    state.persons
-      .map(
-        p => {
-          const enabled =
-            String(p.Status) === '啟用';
-
-          return `
-          <tr>
-
-          <td>
-          <b>${esc(p.Name)}</b>
-          </td>
-
-          <td>
-          ${esc(p.MarketScope || '台/美股')}
-          </td>
-
-          <td>
-          ${esc(p.Status)}
-          </td>
-
-          <td>
-          ${esc(p.CreateTime)}
-          </td>
-
-          <td>
-
-          <button
-          class="small secondary"
-          onclick="editPerson('${esc(p.ID)}')">
-          編輯
-          </button>
-
-          <button
-          class="small secondary"
-          onclick="togglePerson(
-          '${esc(p.ID)}',
-          '${enabled ? '停用' : '啟用'}'
-          )">
-          ${enabled ? '停用' : '啟用'}
-          </button>
-
-          <button
-          class="small danger"
-          onclick="deletePerson('${esc(p.ID)}')">
-          刪除
-          </button>
-
-          </td>
-
-          </tr>
-          `;
-        }
-      )
-      .join('');
+  $('personBody').innerHTML = state.persons.map(p => `
+    <tr>
+      <td><b>${esc(p.Name)}</b></td>
+      <td>${esc(p.MarketScope || '台/美股')}</td>
+      <td class="${p.Status === '停用' ? 'status-disabled' : 'status-enabled'}">
+        ${esc(p.Status)}
+      </td>
+      <td>${esc(p.CreateTime || '')}</td>
+      <td>
+        <button onclick="editPerson('${esc(p.ID)}')">編輯</button>
+        <button class="danger" onclick="deletePerson('${esc(p.ID)}')">刪除</button>
+      </td>
+    </tr>
+  `).join('');
 }
-
 
 function openPersonDialog() {
-  pID.value = '';
-
-  personDialogTitle.textContent =
-    '新增人員';
-
-  pName.value = '';
-
-  pMarketScope.value =
-    '台/美股';
-
-  pStatus.value =
-    '啟用';
-
-  personDialog.showModal();
+  $('personDialogTitle').textContent = '新增人員';
+  $('personID').value = '';
+  $('personName').value = '';
+  $('personMarketScope').value = '台/美股';
+  $('personStatus').value = '啟用';
+  $('personDialog').showModal();
 }
-
 
 function editPerson(id) {
-  const person =
-    state.persons.find(
-      row =>
-        String(row.ID) ===
-        String(id)
-    );
+  const p = getPerson(id);
+  if (!p) return;
 
-  if (!person) {
-    return;
-  }
+  $('personDialogTitle').textContent = '修改人員';
+  $('personID').value = p.ID;
+  $('personName').value = p.Name || '';
+  $('personMarketScope').value = p.MarketScope || '台/美股';
+  $('personStatus').value = p.Status || '啟用';
 
-  pID.value =
-    person.ID;
-
-  personDialogTitle.textContent =
-    '編輯人員';
-
-  pName.value =
-    person.Name || '';
-
-  pMarketScope.value =
-    person.MarketScope ||
-    '台/美股';
-
-  pStatus.value =
-    person.Status === '停用'
-      ? '停用'
-      : '啟用';
-
-  personDialog.showModal();
+  $('personDialog').showModal();
 }
-
 
 async function savePerson() {
-  const name =
-    pName.value.trim();
+  const name = $('personName').value.trim();
 
   if (!name) {
-    return alert(
-      '請輸入姓名'
-    );
+    return alert('請輸入姓名');
   }
 
-  const editing =
-    !!pID.value;
+  const data = {
+    ID: $('personID').value,
+    Name: name,
+    MarketScope: $('personMarketScope').value,
+    Status: $('personStatus').value
+  };
 
-  const oldID =
-    pID.value || '';
-
-  setSaving(
-    personSaveBtn,
-    true
-  );
+  setSaving($('personSaveBtn'), true);
 
   try {
-    const res =
-      await apiPost({
-        action:
-          editing
-            ? 'updatePerson'
-            : 'savePerson',
-
-        data:{
-          ID:
-            oldID,
-
-          Name:
-            name,
-
-          MarketScope:
-            pMarketScope.value,
-
-          Status:
-            pStatus.value
-        }
-      });
+    const res = await apiPost({
+      action: data.ID ? 'updatePerson' : 'savePerson',
+      data
+    });
 
     if (!res.success) {
-      return alert(
-        res.message
-      );
+      throw new Error(res.message || '儲存失敗');
     }
 
-    if (res.person) {
-      state.persons =
-        upsertById(
-          state.persons,
-          res.person
-        );
-
-      if (editing) {
-        syncPersonNameLocally(
-          res.person.ID,
-          res.person.Name
-        );
-      }
-
-      personDialog.close();
-
-      pID.value = '';
-      pName.value = '';
-
-      renderAll();
-      return;
-    }
-
-    personDialog.close();
-    pID.value = '';
-    pName.value = '';
-
+    $('personDialog').close();
     await loadAll();
-
   } catch (err) {
-    console.error(err);
-
-    alert(
-      '儲存失敗：' +
-      err.message
-    );
+    alert('儲存失敗：' + err.message);
   } finally {
-    setSaving(
-      personSaveBtn,
-      false
-    );
+    setSaving($('personSaveBtn'), false);
   }
 }
-
-async function updatePerson() {
-  return await savePerson();
-}
-
 
 async function deletePerson(id) {
-  const person =
-    state.persons.find(
-      row =>
-        String(row.ID) ===
-        String(id)
-    );
+  const p = getPerson(id);
 
-  if (!person) {
-    return;
-  }
+  if (!confirm(
+    `確定刪除「${p?.Name || ''}」嗎？\n\n該人員的每日資產也會一併刪除。`
+  )) return;
 
-  const ok = confirm(`確定要刪除「${person.Name}」嗎？
-
-刪除後會一併刪除：
-・每日資產
-・期初庫存
-・交易紀錄
-
-此操作無法復原。`);
-
-  if (!ok) {
-    return;
-  }
-
-  const res =
-    await apiPost({
-      action:
-        'deletePerson',
-
+  try {
+    const res = await apiPost({
+      action:'deletePerson',
       id
     });
 
-  if (!res.success) {
-    return alert(
-      res.message
-    );
+    if (!res.success) {
+      throw new Error(res.message || '刪除失敗');
+    }
+
+    await loadAll();
+  } catch (err) {
+    alert('刪除失敗：' + err.message);
   }
-
-  await loadAll();
 }
 
-async function togglePerson(id, status) {
-  const res =
-    await apiPost({
-      action:
-        'togglePerson',
-
-      id,
-      status
-    });
-
-  if (!res.success) {
-    return alert(
-      res.message
-    );
-  }
-
-  await loadAll();
+function renderAll() {
+  renderDashboard();
+  renderDaily();
+  renderPersons();
 }
-
-
-
-function updateBankAfterTradePreview() {
-  const bank = +bankBalance.value || 0;
-  const trade = +todayTradeAmount.value || 0;
-
-  bankAfterTradePreview.value =
-    bank - trade;
-}
-
-bankBalance.addEventListener(
-  'input',
-  updateBankAfterTradePreview
-);
-
-todayTradeAmount.addEventListener(
-  'input',
-  updateBankAfterTradePreview
-);
 
 loadAll();
-
 </script>
 
 </body>
