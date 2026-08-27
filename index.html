@@ -144,7 +144,8 @@ label {
 }
 
 input,
-select {
+select,
+textarea {
   width:100%;
   min-height:44px;
   padding:10px 12px;
@@ -155,8 +156,14 @@ select {
   color:var(--text);
 }
 
+textarea {
+  min-height:90px;
+  resize:vertical;
+}
+
 input:focus,
-select:focus {
+select:focus,
+textarea:focus {
   outline:none;
   border-color:#98b6db;
   box-shadow:0 0 0 4px rgba(54, 115, 191, .12);
@@ -593,7 +600,7 @@ dialog::backdrop {
 </head>
 <body>
 <header>
-  <h1>投資管理系統</h1>
+  <h1>股票管理系統</h1>
 </header>
 
 <div class="container">
@@ -859,6 +866,10 @@ dialog::backdrop {
               <label>盤後可佈局 / 調節金額</label>
               <input id="postAdjustmentAmount" type="number" step="1">
             </div>
+            <div class="field-card full">
+              <label>當日成交股票（股票代號／股數／成交金額）</label>
+              <textarea id="postNote" placeholder="例如：0056（2股 × 104.15）"></textarea>
+            </div>
           </div>
         </div>
       </div>
@@ -922,6 +933,10 @@ dialog::backdrop {
             <div class="field-card">
               <label>盤後可佈局 / 調節金額</label>
               <input id="postAdjustmentAmountUSMirror" type="number" readonly>
+            </div>
+            <div class="field-card full">
+              <label>當日成交股票（股票代號／股數／成交金額）</label>
+              <textarea id="postNoteUSMirror" readonly></textarea>
             </div>
           </div>
         </div>
@@ -1414,6 +1429,7 @@ function renderDaily() {
           <div class="summary-box post-box">
             <div class="title">盤後摘要</div>
             <div>${postLines.join('<br>')}</div>
+            ${r.PostNote ? `<div style="margin-top:8px;"><b>當日成交股票：</b>${esc(r.PostNote)}</div>` : ''}
           </div>
         </td>
         <td>
@@ -1460,6 +1476,7 @@ function syncMirrorFields() {
   $('bankAfterTradeUSMirror').value = $('bankAfterTradePreview').value || 0;
   $('preAdjustmentAmountUSMirror').value = $('preAdjustmentAmount').value || 0;
   $('postAdjustmentAmountUSMirror').value = $('postAdjustmentAmount').value || 0;
+  $('postNoteUSMirror').value = $('postNote').value || '';
 }
 
 function setDailyMarketTab(tab) {
@@ -1517,6 +1534,7 @@ function bindSyncEvents() {
   $('postAdjustmentAmount').addEventListener('input', syncMirrorFields);
   $('bankBalance').addEventListener('input', syncMirrorFields);
   $('todayTradeAmount').addEventListener('input', syncMirrorFields);
+  $('postNote').addEventListener('input', syncMirrorFields);
 }
 
 function openDailyDialog() {
@@ -1540,6 +1558,7 @@ function openDailyDialog() {
   $('preAdjustmentAmount').value = 0;
   $('postAdjustmentType').value = '可佈局';
   $('postAdjustmentAmount').value = 0;
+  $('postNote').value = '';
   $('currentMarketTab').value = 'TW';
 
   updateDailyTabVisibility();
@@ -1575,6 +1594,7 @@ function editDaily(id) {
   $('preAdjustmentAmount').value = row.PreAdjustmentAmount || 0;
   $('postAdjustmentType').value = row.PostAdjustmentType || '可佈局';
   $('postAdjustmentAmount').value = row.PostAdjustmentAmount || 0;
+  $('postNote').value = row.PostNote || '';
 
   const preferUS = getAllowedTabs(row.PersonID).length === 1 && getAllowedTabs(row.PersonID)[0] === 'US';
   $('currentMarketTab').value = preferUS ? 'US' : 'TW';
@@ -1617,7 +1637,8 @@ async function saveDaily() {
     PreAdjustmentType: $('preAdjustmentType').value,
     PreAdjustmentAmount: Number($('preAdjustmentAmount').value || 0),
     PostAdjustmentType: $('postAdjustmentType').value,
-    PostAdjustmentAmount: Number($('postAdjustmentAmount').value || 0)
+    PostAdjustmentAmount: Number($('postAdjustmentAmount').value || 0),
+    PostNote: $('postNote').value.trim()
   };
 
   setSaving($('dailySaveBtn'), true);
