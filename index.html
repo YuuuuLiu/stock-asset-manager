@@ -204,6 +204,35 @@ dialog::backdrop{
   background:rgba(12,20,32,.38);
 }
 
+
+.daily-dialog-section{
+  margin-top:16px;
+  padding-top:16px;
+  border-top:1px solid var(--line);
+}
+
+.daily-dialog-section h4{
+  margin:0 0 12px;
+  font-size:16px;
+  color:var(--text);
+}
+
+.daily-dialog-section:first-of-type{
+  margin-top:12px;
+}
+
+.daily-person-date{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+
+@media(max-width:650px){
+  .daily-person-date{
+    grid-template-columns:1fr;
+  }
+}
+
 .form{
   display:grid;
   grid-template-columns:1fr 1fr;
@@ -758,25 +787,37 @@ onclick="savePerson()">
 <h3 id="dailyDialogTitle">
 新增每日資產
 </h3>
+
 <input
 id="dailyID"
 type="hidden">
 
-<div class="form">
+<div class="daily-person-date">
+
+<div>
+<label>人員</label>
+<select
+id="dailyPersonID"
+onchange="updateMarketVisibility()">
+</select>
+</div>
 
 <div>
 <label>日期</label>
 <input id="dailyDate" type="date">
 </div>
 
+</div>
+
+<div class="daily-dialog-section">
+
+<h4>盤前資料</h4>
+
+<div class="form">
+
 <div>
 <label>開盤台股市值</label>
 <input id="twOpenValue" type="number" step="1">
-</div>
-
-<div>
-<label>收盤台股市值</label>
-<input id="twCloseValue" type="number" step="1">
 </div>
 
 <div>
@@ -790,18 +831,33 @@ type="hidden">
 </div>
 
 <div class="market-us-only">
-<label>收盤美股市值 (USD)</label>
-<input id="usCloseValue" type="number" step="0.01">
-</div>
-
-<div class="market-us-only">
 <label>美股水位 (%)</label>
 <input id="usPositionRate" type="number" step="0.01">
 </div>
 
-<div>
+<div class="full">
 <label>銀行帳戶金額</label>
 <input id="bankBalance" type="number" step="1">
+</div>
+
+</div>
+
+</div>
+
+<div class="daily-dialog-section">
+
+<h4>盤後資料</h4>
+
+<div class="form">
+
+<div>
+<label>收盤台股市值</label>
+<input id="twCloseValue" type="number" step="1">
+</div>
+
+<div class="market-us-only">
+<label>收盤美股市值 (USD)</label>
+<input id="usCloseValue" type="number" step="0.01">
 </div>
 
 <div>
@@ -809,10 +865,24 @@ type="hidden">
 <input id="todayTradeAmount" type="number" step="1">
 </div>
 
-<div class="full">
-<label>銀行帳戶（扣除今日交易金額）總金額</label>
-<input id="bankAfterTradePreview" type="number" step="1" readonly>
+<div>
+<label>銀行帳戶<br>（扣除今日交易金額）</label>
+<input
+id="bankAfterTradePreview"
+type="number"
+step="1"
+readonly>
 </div>
+
+</div>
+
+</div>
+
+<div class="daily-dialog-section">
+
+<h4>資金狀態</h4>
+
+<div class="form">
 
 <div>
 <label>資金狀態</label>
@@ -824,9 +894,11 @@ type="hidden">
 
 </div>
 
-<div class="full">
+<div>
 <label>可佈局 / 調節金額</label>
 <input id="adjustmentAmount" type="number" step="1">
+</div>
+
 </div>
 
 </div>
@@ -2286,15 +2358,18 @@ function openDailyDialog() {
   todayTradeAmount.value =
     0;
 
+  bankAfterTradePreview.value =
+    0;
+
   adjustmentType.value =
     '可佈局';
 
   adjustmentAmount.value =
     0;
 
-  updateMarketVisibility();
-
   dailyDialog.showModal();
+
+  updateMarketVisibility();
 }
 
 function editDaily(id) {
@@ -2309,24 +2384,15 @@ function editDaily(id) {
     return;
   }
 
-  const person =
-    selectedPerson();
-
-  dailyDialogPersonText.textContent =
-    '目前人員：' +
-    person.Name;
-
-  updateMarketVisibility();
-
-  fillDailyPersonSelect(
-    row.PersonID
-  );
+  dailyDialogTitle.textContent =
+    '修改每日資產';
 
   dailyID.value =
     row.ID;
 
-  dailyDialogTitle.textContent =
-    '修改每日資產';
+  fillDailyPersonSelect(
+    row.PersonID
+  );
 
   dailyDate.value =
     row.Date || '';
@@ -2366,12 +2432,19 @@ function editDaily(id) {
     row.AdjustmentAmount || 0;
 
   dailyDialog.showModal();
-}
 
+  updateMarketVisibility();
+}
 
 async function saveDaily() {
 const personID =
-    selectedPersonID();
+    dailyPersonID.value;
+
+  if (!personID) {
+    return alert(
+      '請選擇人員'
+    );
+  }
 
   const data = {
     ID:
