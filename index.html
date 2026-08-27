@@ -432,6 +432,10 @@ select{
 </head>
 
 <body>
+<div id="dailyPersonText" style="display:none" aria-hidden="true"></div>
+
+<div id="dashboardPersonText" style="display:none" aria-hidden="true"></div>
+
 
 
 <header>
@@ -857,6 +861,22 @@ onclick="saveDaily()">
 
 
 <script>
+const dailyPersonText =
+  document.getElementById(
+    'dailyPersonText'
+  ) || {
+    textContent: ''
+  };
+
+
+const dashboardPersonText =
+  document.getElementById(
+    'dashboardPersonText'
+  ) || {
+    textContent: ''
+  };
+
+
 
 const API_URL =
 'https://script.google.com/macros/s/AKfycbzyooHTwpskMzdLOd6QQUA7FczSoUP-GGyqUa2Zlyos-6cH1Fb5mDKmvHdbpEJjQYoH/exec';
