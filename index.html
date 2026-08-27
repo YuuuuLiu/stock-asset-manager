@@ -708,7 +708,11 @@ dialog::backdrop {
         <button onclick="openDailyDialog()">＋ 新增</button>
       </div>
 
-      <div class="filters" style="grid-template-columns:repeat(2,minmax(160px,210px));">
+      <div class="filters" style="grid-template-columns:repeat(3,minmax(160px,210px));">
+        <div>
+          <label>人員</label>
+          <select id="dailyPersonFilter" onchange="renderDaily()"></select>
+        </div>
         <div>
           <label>年份</label>
           <select id="dailyYear" onchange="renderDaily()"></select>
@@ -1322,10 +1326,27 @@ function renderDashboardChart() {
 
 function refreshDailyFilters() {
   const years = getAllYears();
+  const oldPerson = $('dailyPersonFilter') ? $('dailyPersonFilter').value : '';
+  const oldYear = $('dailyYear') ? $('dailyYear').value : '';
+  const oldMonth = $('dailyMonth') ? $('dailyMonth').value : '';
+
+  $('dailyPersonFilter').innerHTML =
+    '<option value="">全部人員</option>' +
+    state.persons
+      .map(p => `<option value="${esc(p.ID)}">${esc(p.Name)}</option>`)
+      .join('');
+
+  if (oldPerson && [...$('dailyPersonFilter').options].some(o => o.value === oldPerson)) {
+    $('dailyPersonFilter').value = oldPerson;
+  }
 
   $('dailyYear').innerHTML =
     '<option value="">全部年份</option>' +
     years.map(y => `<option value="${y}">${y}</option>`).join('');
+
+  if (oldYear && [...$('dailyYear').options].some(o => o.value === oldYear)) {
+    $('dailyYear').value = oldYear;
+  }
 
   $('dailyMonth').innerHTML =
     '<option value="">全部月份</option>' +
@@ -1333,6 +1354,10 @@ function refreshDailyFilters() {
       const m = String(i + 1).padStart(2,'0');
       return `<option value="${m}">${i+1} 月</option>`;
     }).join('');
+
+  if (oldMonth && [...$('dailyMonth').options].some(o => o.value === oldMonth)) {
+    $('dailyMonth').value = oldMonth;
+  }
 }
 
 function statusBadge(type) {
@@ -1340,12 +1365,14 @@ function statusBadge(type) {
 }
 
 function renderDaily() {
+  const personID = $('dailyPersonFilter').value;
   const year = $('dailyYear').value;
   const month = $('dailyMonth').value;
 
   const rows = state.daily
     .filter(r => {
       const date = String(r.Date || '');
+      if (personID && String(r.PersonID || '') !== String(personID)) return false;
       if (year && !date.startsWith(year)) return false;
       if (month && date.slice(5,7) !== month) return false;
       return true;
@@ -1461,9 +1488,27 @@ function updateDailyTabVisibility() {
 }
 
 function updateBankAfterTradePreview() {
-  const bank = Number($('bankBalance').value || 0);
-  const trade = Number($('todayTradeAmount').value || 0);
-  $('bankAfterTradePreview').value = bank - trade;
+  const bank =
+    Number(
+      $('bankBalance').value || 0
+    );
+
+  const tradeRaw =
+    String(
+      $('todayTradeAmount').value ?? ''
+    ).trim();
+
+  // 今日交易總金額尚未輸入時，
+  // 銀行帳戶（扣除今日交易金額）固定顯示 0。
+  const bankAfterTrade =
+    tradeRaw === ''
+      ? 0
+      : bank -
+        Number(tradeRaw || 0);
+
+  $('bankAfterTradePreview').value =
+    bankAfterTrade;
+
   syncMirrorFields();
 }
 
@@ -1489,7 +1534,7 @@ function openDailyDialog() {
   $('usCloseValue').value = 0;
   $('usPositionRate').value = 0;
   $('bankBalance').value = 0;
-  $('todayTradeAmount').value = 0;
+  $('todayTradeAmount').value = '';
   $('bankAfterTradePreview').value = 0;
   $('preAdjustmentType').value = '可佈局';
   $('preAdjustmentAmount').value = 0;
@@ -1519,7 +1564,12 @@ function editDaily(id) {
   $('usCloseValue').value = row.USCloseValue || 0;
   $('usPositionRate').value = row.USPositionRate || 0;
   $('bankBalance').value = row.BankBalance || 0;
-  $('todayTradeAmount').value = row.TodayTradeAmount || 0;
+  $('todayTradeAmount').value =
+    row.TodayTradeAmount === '' ||
+    row.TodayTradeAmount === null ||
+    row.TodayTradeAmount === undefined
+      ? ''
+      : row.TodayTradeAmount;
   $('bankAfterTradePreview').value = row.BankAfterTrade || 0;
   $('preAdjustmentType').value = row.PreAdjustmentType || '可佈局';
   $('preAdjustmentAmount').value = row.PreAdjustmentAmount || 0;
@@ -1550,7 +1600,14 @@ async function saveDaily() {
     USCloseValue: Number($('usCloseValue').value || 0),
     USPositionRate: Number($('usPositionRate').value || 0),
     BankBalance: Number($('bankBalance').value || 0),
-    TodayTradeAmount: Number($('todayTradeAmount').value || 0),
+    TodayTradeAmount:
+      String(
+        $('todayTradeAmount').value ?? ''
+      ).trim() === ''
+        ? ''
+        : Number(
+            $('todayTradeAmount').value
+          ),
     PreAdjustmentType: $('preAdjustmentType').value,
     PreAdjustmentAmount: Number($('preAdjustmentAmount').value || 0),
     PostAdjustmentType: $('postAdjustmentType').value,
