@@ -432,7 +432,7 @@ select{
 </head>
 
 <body>
-<select id="currentPerson" style="display:none" aria-hidden="true"></select>
+
 
 <header>
 
@@ -480,9 +480,6 @@ class="page active">
       資料日期：—
     </div>
   </div>
-
-  <div class="sub current-person-text" id="dashboardPersonText"></div>
-
 </div>
 
 <div class="person-context market-us-only">
@@ -583,8 +580,7 @@ id="daily"
 class="page">
 
 <div class="record-page-head">
-  <div class="sub current-person-text" id="dailyPersonText"></div>
-  <h2>每日資產</h2>
+<h2>每日資產</h2>
 </div>
 
 <div class="record-action-row">
@@ -758,12 +754,6 @@ onclick="savePerson()">
 <h3 id="dailyDialogTitle">
 新增每日資產
 </h3>
-
-<div
-class="person-context"
-id="dailyDialogPersonText">
-</div>
-
 <input
 id="dailyID"
 type="hidden">
@@ -980,30 +970,6 @@ function activePersons() {
 
 
 function selectedPersonID() {
-  const dashboardSelect =
-    document.getElementById(
-      'dashboardPersonSelect'
-    );
-
-  if (
-    dashboardSelect &&
-    dashboardSelect.value
-  ) {
-    return dashboardSelect.value;
-  }
-
-  const hiddenCurrentPerson =
-    document.getElementById(
-      'currentPerson'
-    );
-
-  if (
-    hiddenCurrentPerson &&
-    hiddenCurrentPerson.value
-  ) {
-    return hiddenCurrentPerson.value;
-  }
-
   const firstActivePerson =
     activePersons()[0];
 
@@ -1014,11 +980,14 @@ function selectedPersonID() {
 
 
 function selectedPerson() {
+  const personID =
+    selectedPersonID();
+
   return state.persons.find(
-    x =>
-      String(x.ID) ===
-      String(selectedPersonID())
-  );
+    person =>
+      String(person.ID) ===
+      String(personID)
+  ) || null;
 }
 
 
@@ -1120,45 +1089,6 @@ function replaceRowsForPerson(
 }
 
 
-function refreshPersonSelect(
-  preferredID = ''
-) {
-  const hiddenCurrentPerson =
-    document.getElementById(
-      'currentPerson'
-    );
-
-  if (!hiddenCurrentPerson) {
-    return;
-  }
-
-  const previous =
-    preferredID ||
-    hiddenCurrentPerson.value;
-
-  hiddenCurrentPerson.innerHTML =
-    activePersons()
-      .map(
-        p =>
-          `<option value="${esc(p.ID)}">${esc(p.Name)}</option>`
-      )
-      .join('');
-
-  if (
-    previous &&
-    [...hiddenCurrentPerson.options]
-      .some(
-        option =>
-          option.value ===
-          String(previous)
-      )
-  ) {
-    hiddenCurrentPerson.value =
-      String(previous);
-  }
-}
-
-
 function syncPersonNameLocally(
   personID,
   personName
@@ -1217,10 +1147,6 @@ async function loadAll() {
 
     state.inventory =
       res.inventory || [];
-
-    refreshPersonSelect(
-      selectedPersonID()
-    );
 
     renderAll();
 
@@ -1322,9 +1248,8 @@ function buildMonthSelect(selectEl, preserveValue = true) {
 
 
 function refreshFilterOptions() {
-  refreshDashboardPersonOptions();
   const dailyRows =
-    byPerson(state.daily);
+    getAllDailyRows();
 
   const tradeRows =
     byPerson(state.trades);
@@ -1392,16 +1317,100 @@ function handleTradeYearChange() {
 
 
 
-function getDashboardDateRows() {
-  const personID =
-    dashboardSelectedPersonID();
 
-  return state.daily
+function getDashboardPersonsForSelectedDate() {
+  const date =
+    getDashboardSelectedDate();
+
+  const personIDs =
+    [...new Set(
+      getAllDailyRows()
+        .filter(
+          row =>
+            String(row.Date || '') ===
+            String(date || '')
+        )
+        .map(
+          row =>
+            String(row.PersonID || '')
+        )
+        .filter(Boolean)
+    )];
+
+  return state.persons
     .filter(
-      row =>
-        String(row.PersonID) ===
-        String(personID)
-    )
+      person =>
+        personIDs.includes(
+          String(person.ID)
+        )
+    );
+}
+
+
+function refreshDashboardPersonOptions(
+  preferredID = ''
+) {
+  const select =
+    document.getElementById(
+      'dashboardPersonSelect'
+    );
+
+  if (!select) {
+    return;
+  }
+
+  const persons =
+    getDashboardPersonsForSelectedDate();
+
+  const oldValue =
+    preferredID ||
+    select.value;
+
+  select.innerHTML =
+    persons
+      .map(
+        person =>
+          `<option value="${esc(person.ID)}">${esc(person.Name)}</option>`
+      )
+      .join('');
+
+  if (
+    oldValue &&
+    [...select.options]
+      .some(
+        option =>
+          option.value ===
+          String(oldValue)
+      )
+  ) {
+    select.value =
+      String(oldValue);
+  } else if (select.options.length) {
+    select.value =
+      select.options[0].value;
+  }
+}
+
+
+function dashboardSelectedPersonID() {
+  const select =
+    document.getElementById(
+      'dashboardPersonSelect'
+    );
+
+  return select
+    ? select.value
+    : '';
+}
+
+
+function handleDashboardPersonChange() {
+  renderDashboard();
+}
+
+
+function getDashboardDateRows() {
+  return getAllDailyRows()
     .filter(row => row.Date)
     .slice()
     .sort(
@@ -1588,12 +1597,14 @@ function refreshDashboardDayOptions(
 
 function handleDashboardYearChange() {
   refreshDashboardMonthOptions();
+  refreshDashboardPersonOptions();
   renderDashboard();
 }
 
 
 function handleDashboardMonthChange() {
   refreshDashboardDayOptions();
+  refreshDashboardPersonOptions();
   renderDashboard();
 }
 
@@ -1621,123 +1632,61 @@ function getDashboardSelectedDate() {
 
 
 
-function refreshDashboardPersonOptions() {
-  const hiddenCurrentPerson =
-    document.getElementById(
-      'currentPerson'
-    );
-
-  const current =
-    dashboardPersonSelect.value ||
-    (
-      hiddenCurrentPerson
-        ? hiddenCurrentPerson.value
-        : ''
-    );
-
-  dashboardPersonSelect.innerHTML =
-    activePersons()
-      .map(
-        p =>
-          `<option value="${esc(p.ID)}">${esc(p.Name)}</option>`
-      )
-      .join('');
-
-  const options =
-    [...dashboardPersonSelect.options];
-
-  if (
-    current &&
-    options.some(
-      option =>
-        option.value ===
-        String(current)
+function getActivePersonOptions() {
+  return activePersons()
+    .map(
+      p =>
+        `<option value="${esc(p.ID)}">${esc(p.Name)}</option>`
     )
-  ) {
-    dashboardPersonSelect.value =
-      String(current);
-  } else if (options.length) {
-    dashboardPersonSelect.value =
-      options[0].value;
-  }
+    .join('');
 }
 
 
-function dashboardSelectedPersonID() {
-  const dashboardSelect =
+function fillDailyPersonSelect(
+  preferredID = ''
+) {
+  const select =
     document.getElementById(
-      'dashboardPersonSelect'
+      'dailyPersonID'
     );
 
-  if (
-    dashboardSelect &&
-    dashboardSelect.value
-  ) {
-    return dashboardSelect.value;
+  if (!select) {
+    return;
   }
 
-  return selectedPersonID();
-}
-
-
-function handleDashboardPersonChange() {
-  // Dashboard only changes its own selected person.
-  refreshDashboardDateOptionsForPerson();
-  renderDashboard();
-}
-
-
-function refreshDashboardDateOptionsForPerson() {
-  const personID =
-    dashboardSelectedPersonID();
-
-  const rows =
-    state.daily
-      .filter(
-        row =>
-          String(row.PersonID) ===
-          String(personID)
-      )
-      .filter(row => row.Date);
-
-  buildYearSelect(
-    dashboardYear,
-    rows
-  );
-
-  const today =
-    getTodayDateString();
-
-  const todayYear =
-    today.slice(0, 4);
+  select.innerHTML =
+    getActivePersonOptions();
 
   if (
-    ![...dashboardYear.options]
+    preferredID &&
+    [...select.options]
       .some(
         option =>
           option.value ===
-          todayYear
+          String(preferredID)
       )
   ) {
-    const option =
-      document.createElement('option');
-
-    option.value =
-      todayYear;
-
-    option.textContent =
-      todayYear;
-
-    dashboardYear.prepend(option);
+    select.value =
+      String(preferredID);
   }
+}
 
-  dashboardYear.value =
-    todayYear;
 
-  refreshDashboardMonthOptions(
-    today.slice(5, 7),
-    today.slice(8, 10)
-  );
+function getAllDailyRows() {
+  return (state.daily || [])
+    .slice();
+}
+
+
+function getDailyRowsByDate(
+  date
+) {
+  return getAllDailyRows()
+    .filter(
+      row =>
+        String(row.Date || '') ===
+        String(date || '')
+    );
 }
 
 
@@ -1778,11 +1727,36 @@ function getDashboardDateRows() {
 
 
 function currentPersonHasUSMarket() {
+  const dailySelect =
+    document.getElementById(
+      'dailyPersonID'
+    );
+
+  const personID =
+    (
+      dailyDialog &&
+      dailyDialog.open &&
+      dailySelect &&
+      dailySelect.value
+    )
+      ? dailySelect.value
+      : '';
+
+  if (!personID) {
+    // 在一般頁面顯示全部欄位，
+    // 不因單一人員市場別隱藏。
+    return true;
+  }
+
   const person =
-    selectedPerson();
+    state.persons.find(
+      p =>
+        String(p.ID) ===
+        String(personID)
+    );
 
   if (!person) {
-    return false;
+    return true;
   }
 
   const scope =
@@ -1797,18 +1771,42 @@ function currentPersonHasUSMarket() {
 
 
 function updateMarketVisibility() {
+  const dailySelect =
+    document.getElementById(
+      'dailyPersonID'
+    );
+
+  const dialogOpen =
+    typeof dailyDialog !==
+      'undefined' &&
+    dailyDialog.open;
+
   const showUS =
-    currentPersonHasUSMarket();
+    dialogOpen &&
+    dailySelect
+      ? currentPersonHasUSMarket()
+      : true;
 
   document
     .querySelectorAll(
       '.market-us-only'
     )
     .forEach(el => {
-      el.classList.toggle(
-        'is-hidden',
-        !showUS
-      );
+      // 日常頁面全部顯示；只有每日資產 Dialog 開啟時
+      // 才依選定人員市場別控制美股輸入欄。
+      if (
+        dialogOpen &&
+        dailyDialog.contains(el)
+      ) {
+        el.classList.toggle(
+          'is-hidden',
+          !showUS
+        );
+      } else {
+        el.classList.remove(
+          'is-hidden'
+        );
+      }
     });
 }
 
@@ -2090,7 +2088,7 @@ function renderDaily() {
 
   const rows =
     filterRowsByYearMonth(
-      byPerson(state.daily),
+      getAllDailyRows(),
       selectedYear,
       selectedMonth
     )
@@ -2228,34 +2226,24 @@ function renderDaily() {
 
 
 function openDailyDialog() {
-  if (!ensurePerson()) {
-    return;
+  if (
+    !activePersons().length
+  ) {
+    return alert(
+      '請先新增人員'
+    );
   }
-
-  const person =
-    selectedPerson();
-
-  dailyDialogPersonText.textContent =
-    '目前人員：' +
-    person.Name;
-
-  if (typeof dailyPersonName !== 'undefined') {
-    dailyPersonName.value =
-      person.Name || '';
-  }
-
-  updateMarketVisibility();
-
-  dailyID.value =
-    '';
 
   dailyDialogTitle.textContent =
     '新增每日資產';
 
+  dailyID.value =
+    '';
+
+  fillDailyPersonSelect();
+
   dailyDate.value =
-    new Date()
-      .toISOString()
-      .slice(0,10);
+    getTodayDateString();
 
   twOpenValue.value =
     0;
@@ -2281,18 +2269,16 @@ function openDailyDialog() {
   todayTradeAmount.value =
     0;
 
-  bankAfterTradePreview.value =
-    0;
-
   adjustmentType.value =
     '可佈局';
 
   adjustmentAmount.value =
     0;
 
+  updateMarketVisibility();
+
   dailyDialog.showModal();
 }
-
 
 function editDaily(id) {
   const row =
@@ -2315,10 +2301,9 @@ function editDaily(id) {
 
   updateMarketVisibility();
 
-  if (typeof dailyPersonName !== 'undefined') {
-    dailyPersonName.value =
-      row.PersonName || '';
-  }
+  fillDailyPersonSelect(
+    row.PersonID
+  );
 
   dailyID.value =
     row.ID;
@@ -2368,11 +2353,7 @@ function editDaily(id) {
 
 
 async function saveDaily() {
-  if (!ensurePerson()) {
-    return;
-  }
-
-  const personID =
+const personID =
     selectedPersonID();
 
   const data = {
@@ -3358,12 +3339,6 @@ async function savePerson() {
           res.person.Name
         );
       }
-
-      refreshPersonSelect(
-        editing
-          ? res.person.ID
-          : selectedPersonID()
-      );
 
       personDialog.close();
 
