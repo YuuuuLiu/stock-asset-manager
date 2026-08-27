@@ -355,7 +355,7 @@ select{
 
 .dashboard-filters{
   display:grid;
-  grid-template-columns:repeat(3,minmax(140px,180px));
+  grid-template-columns:repeat(4,minmax(140px,180px));
   gap:12px;
   align-items:end;
   margin:16px 0 22px;
@@ -437,9 +437,7 @@ select{
 
 <div>
   <b>股票管理系統</b>
-  <div style="font-size:12px;color:#d8e2ef;margin-top:4px;">
-    以人員為單位管理投資資產
-  </div>
+  
 </div>
 
 <div class="person-box">
@@ -475,16 +473,6 @@ onclick="showPage('daily',this)">
 </button>
 
 <button
-onclick="showPage('inventory',this)">
-股票庫存
-</button>
-
-<button
-onclick="showPage('trades',this)">
-交易紀錄
-</button>
-
-<button
 onclick="showPage('persons',this)">
 人員管理
 </button>
@@ -517,6 +505,12 @@ class="page active">
 </div>
 
 <div class="dashboard-filters">
+
+  <div>
+    <label for="dashboardPersonSelect">人員</label>
+    <select id="dashboardPersonSelect" onchange="handleDashboardPersonChange()"></select>
+  </div>
+
 
   <div>
     <label for="dashboardYear">年份</label>
@@ -640,6 +634,7 @@ class="page">
 
 <tr>
 <th>日期</th>
+<th>人員</th>
 <th>開盤台股市值</th>
 <th>收盤台股市值</th>
 <th>台股水位</th>
@@ -665,137 +660,14 @@ class="page">
 </section>
 
 
-<!-- 股票庫存 -->
-
-<section
-id="inventory"
-class="page">
-
-<div class="toolbar">
-
-<div>
-<h2>股票庫存</h2>
-<div class="sub current-person-text" id="inventoryPersonText"></div>
-</div>
-
-<button
-onclick="openBaseDialog()">
-＋新增期初庫存
-</button>
-
-</div>
-
-<div class="person-context">
-目前庫存 = 期初庫存 + 此人員的交易紀錄
-</div>
-
-<table>
-
-<thead>
-
-<tr>
-<th>市場</th>
-<th>股票</th>
-<th>股數</th>
-<th>平均成本</th>
-<th>現價</th>
-<th>市值</th>
-<th>未實現損益</th>
-<th>報酬率</th>
-</tr>
-
-</thead>
-
-<tbody id="inventoryBody"></tbody>
-
-</table>
 
 
-<div class="toolbar">
-<h3>期初庫存</h3>
-</div>
-
-<table>
-
-<thead>
-
-<tr>
-<th>市場</th>
-<th>股票</th>
-<th>股數</th>
-<th>成本</th>
-<th>現價</th>
-<th>操作</th>
-</tr>
-
-</thead>
-
-<tbody id="baseBody"></tbody>
-
-</table>
-
-</section>
 
 
-<!-- 交易紀錄 -->
 
-<section
-id="trades"
-class="page">
 
-<div class="record-page-head">
-  <div class="sub current-person-text" id="tradePersonText"></div>
-  <h2>交易紀錄</h2>
-</div>
 
-<div class="record-action-row">
-  <button onclick="openTradeDialog()">
-    ＋新增交易
-  </button>
-</div>
 
-<div class="record-filter-row">
-
-  <div class="record-filter-group">
-    <label for="tradeYear">年份</label>
-    <select
-      id="tradeYear"
-      onchange="handleTradeYearChange()">
-    </select>
-  </div>
-
-  <div class="record-filter-group">
-    <label for="tradeMonth">月份</label>
-    <select
-      id="tradeMonth"
-      onchange="renderTrades()">
-    </select>
-  </div>
-
-</div>
-
-<table>
-
-<thead>
-
-<tr>
-<th>日期</th>
-<th>市場</th>
-<th>股票</th>
-<th>買 / 賣</th>
-<th>股數</th>
-<th>價格</th>
-<th>備註</th>
-<th>操作</th>
-</tr>
-
-</thead>
-
-<tbody id="tradeBody"></tbody>
-
-</table>
-
-</section>
 
 
 <!-- 人員管理 -->
@@ -884,6 +756,7 @@ onclick="personDialog.close()">
 </button>
 
 <button
+id="personSaveBtn"
 onclick="savePerson()">
 儲存
 </button>
@@ -988,6 +861,7 @@ onclick="dailyDialog.close()">
 </button>
 
 <button
+id="dailySaveBtn"
 onclick="saveDaily()">
 儲存
 </button>
@@ -999,152 +873,12 @@ onclick="saveDaily()">
 
 <!-- 期初庫存 Dialog -->
 
-<dialog id="baseDialog">
 
-<h3>新增期初庫存</h3>
-
-<div
-class="person-context"
-id="baseDialogPersonText">
-</div>
-
-<div class="form">
-
-<div>
-<label>市場</label>
-<select id="baseMarket">
-<option value="TW">台股</option>
-<option value="US">美股</option>
-</select>
-</div>
-
-<div>
-<label>股票代號</label>
-<input id="baseCode" type="text">
-</div>
-
-<div>
-<label>股數</label>
-<input id="baseQty" type="number" step="0.0001">
-</div>
-
-<div>
-<label>平均成本</label>
-<input id="baseCost" type="number" step="0.01">
-</div>
-
-<div>
-<label>現價</label>
-<input id="basePrice" type="number" step="0.01">
-</div>
-
-</div>
-
-<div class="actions">
-
-<button
-class="secondary"
-onclick="baseDialog.close()">
-取消
-</button>
-
-<button
-onclick="saveBaseInventory()">
-儲存
-</button>
-
-</div>
-
-</dialog>
 
 
 <!-- 交易 Dialog -->
 
-<dialog id="tradeDialog">
 
-<h3 id="tradeDialogTitle">
-新增交易
-</h3>
-
-<div
-class="person-context"
-id="tradeDialogPersonText">
-</div>
-
-<input
-id="tradeID"
-type="hidden">
-
-<div class="form">
-
-<div>
-<label>日期</label>
-<input id="tradeDate" type="date">
-</div>
-
-<div>
-<label>市場</label>
-
-<select id="tradeMarket">
-<option value="TW">台股</option>
-<option value="US">美股</option>
-</select>
-
-</div>
-
-<div>
-<label>股票代號</label>
-
-<input
-id="tradeCode"
-type="text"
-placeholder="0050 / 00878 / NVDA">
-
-</div>
-
-<div>
-<label>買 / 賣</label>
-
-<select id="tradeType">
-<option value="買進">買進</option>
-<option value="賣出">賣出</option>
-</select>
-
-</div>
-
-<div>
-<label>股數</label>
-<input id="tradeQty" type="number" step="0.0001">
-</div>
-
-<div>
-<label>成交價</label>
-<input id="tradePrice" type="number" step="0.01">
-</div>
-
-<div class="full">
-<label>備註</label>
-<input id="tradeNote">
-</div>
-
-</div>
-
-<div class="actions">
-
-<button
-class="secondary"
-onclick="tradeDialog.close()">
-取消
-</button>
-
-<button
-onclick="saveTrade()">
-儲存
-</button>
-
-</div>
-
-</dialog>
 
 
 <script>
@@ -1299,6 +1033,142 @@ function ensurePerson() {
 }
 
 
+
+function setSaving(button, saving) {
+  if (!button) {
+    return;
+  }
+
+  if (saving) {
+    button.dataset.originalText =
+      button.textContent;
+
+    button.textContent =
+      '儲存中...';
+
+    button.disabled =
+      true;
+  } else {
+    button.textContent =
+      button.dataset.originalText ||
+      '儲存';
+
+    button.disabled =
+      false;
+  }
+}
+
+
+function upsertById(rows, item) {
+  const list =
+    Array.isArray(rows)
+      ? rows.slice()
+      : [];
+
+  if (!item) {
+    return list;
+  }
+
+  const index =
+    list.findIndex(
+      row =>
+        String(row.ID) ===
+        String(item.ID)
+    );
+
+  if (index >= 0) {
+    list[index] = item;
+  } else {
+    list.push(item);
+  }
+
+  return list;
+}
+
+
+function replaceRowsForPerson(
+  rows,
+  personID,
+  personRows
+) {
+  const otherRows =
+    (rows || [])
+      .filter(
+        row =>
+          String(row.PersonID) !==
+          String(personID)
+      );
+
+  return [
+    ...otherRows,
+    ...(personRows || [])
+  ];
+}
+
+
+function refreshPersonSelect(
+  preferredID = ''
+) {
+  const previous =
+    preferredID ||
+    currentPerson.value;
+
+  currentPerson.innerHTML =
+    activePersons()
+      .map(
+        p =>
+          `<option value="${esc(p.ID)}">${esc(p.Name)}</option>`
+      )
+      .join('');
+
+  if (
+    previous &&
+    [...currentPerson.options]
+      .some(
+        option =>
+          option.value ===
+          String(previous)
+      )
+  ) {
+    currentPerson.value =
+      String(previous);
+  }
+}
+
+
+function syncPersonNameLocally(
+  personID,
+  personName
+) {
+  const apply =
+    rows =>
+      (rows || []).map(
+        row =>
+          String(row.PersonID) ===
+          String(personID)
+            ? {
+                ...row,
+                PersonName:
+                  personName
+              }
+            : row
+      );
+
+  state.daily =
+    apply(state.daily);
+
+  state.baseInventory =
+    apply(state.baseInventory);
+
+  state.trades =
+    apply(state.trades);
+
+  state.inventory =
+    apply(state.inventory);
+}
+
+
+
 async function loadAll() {
   try {
     const res =
@@ -1325,28 +1195,9 @@ async function loadAll() {
     state.inventory =
       res.inventory || [];
 
-    const previous =
-      currentPerson.value;
-
-    currentPerson.innerHTML =
-      activePersons()
-        .map(
-          p =>
-            `<option value="${esc(p.ID)}">${esc(p.Name)}</option>`
-        )
-        .join('');
-
-    if (
-      previous &&
-      [...currentPerson.options]
-        .some(
-          x =>
-            x.value === previous
-        )
-    ) {
-      currentPerson.value =
-        previous;
-    }
+    refreshPersonSelect(
+      currentPerson.value
+    );
 
     renderAll();
 
@@ -1448,6 +1299,7 @@ function buildMonthSelect(selectEl, preserveValue = true) {
 
 
 function refreshFilterOptions() {
+  refreshDashboardPersonOptions();
   const dailyRows =
     byPerson(state.daily);
 
@@ -1467,11 +1319,6 @@ function refreshFilterOptions() {
 
   buildMonthSelect(
     dailyMonth
-  );
-
-  buildYearSelect(
-    tradeYear,
-    tradeRows
   );
 
   buildMonthSelect(
@@ -1514,7 +1361,6 @@ function handleDailyYearChange() {
 
 
 function handleTradeYearChange() {
-  renderTrades();
 }
 
 
@@ -1524,7 +1370,15 @@ function handleTradeYearChange() {
 
 
 function getDashboardDateRows() {
-  return byPerson(state.daily)
+  const personID =
+    dashboardSelectedPersonID();
+
+  return state.daily
+    .filter(
+      row =>
+        String(row.PersonID) ===
+        String(personID)
+    )
     .filter(row => row.Date)
     .slice()
     .sort(
@@ -1743,6 +1597,110 @@ function getDashboardSelectedDate() {
 }
 
 
+
+function refreshDashboardPersonOptions() {
+  const current =
+    dashboardPersonSelect.value ||
+    currentPerson.value;
+
+  dashboardPersonSelect.innerHTML =
+    activePersons()
+      .map(
+        p =>
+          `<option value="${esc(p.ID)}">${esc(p.Name)}</option>`
+      )
+      .join('');
+
+  const options =
+    [...dashboardPersonSelect.options];
+
+  if (
+    current &&
+    options.some(
+      option =>
+        option.value ===
+        String(current)
+    )
+  ) {
+    dashboardPersonSelect.value =
+      String(current);
+  } else if (options.length) {
+    dashboardPersonSelect.value =
+      options[0].value;
+  }
+}
+
+
+function dashboardSelectedPersonID() {
+  return (
+    dashboardPersonSelect.value ||
+    currentPerson.value ||
+    ''
+  );
+}
+
+
+function handleDashboardPersonChange() {
+  // Dashboard only changes its own selected person.
+  refreshDashboardDateOptionsForPerson();
+  renderDashboard();
+}
+
+
+function refreshDashboardDateOptionsForPerson() {
+  const personID =
+    dashboardSelectedPersonID();
+
+  const rows =
+    state.daily
+      .filter(
+        row =>
+          String(row.PersonID) ===
+          String(personID)
+      )
+      .filter(row => row.Date);
+
+  buildYearSelect(
+    dashboardYear,
+    rows
+  );
+
+  const today =
+    getTodayDateString();
+
+  const todayYear =
+    today.slice(0, 4);
+
+  if (
+    ![...dashboardYear.options]
+      .some(
+        option =>
+          option.value ===
+          todayYear
+      )
+  ) {
+    const option =
+      document.createElement('option');
+
+    option.value =
+      todayYear;
+
+    option.textContent =
+      todayYear;
+
+    dashboardYear.prepend(option);
+  }
+
+  dashboardYear.value =
+    todayYear;
+
+  refreshDashboardMonthOptions(
+    today.slice(5, 7),
+    today.slice(8, 10)
+  );
+}
+
+
 function getTodayDateString() {
   const now =
     new Date();
@@ -1831,20 +1789,12 @@ function renderAll() {
   dailyPersonText.textContent =
     '目前人員：' + personName;
 
-  inventoryPersonText.textContent =
-    '目前人員：' + personName;
-
-  tradePersonText.textContent =
-    '目前人員：' + personName;
-
   refreshFilterOptions();
 
   updateMarketVisibility();
 
   renderDashboard();
   renderDaily();
-  renderInventory();
-  renderTrades();
   renderPersons();
 }
 
@@ -1862,7 +1812,11 @@ function renderDashboard() {
 
   const rows =
     filterRowsByYearMonth(
-      byPerson(state.daily),
+      state.daily.filter(
+      row =>
+        String(row.PersonID) ===
+        String(dashboardSelectedPersonID())
+    ),
       selectedYear,
       ''
     )
@@ -2115,8 +2069,8 @@ function renderDaily() {
   if (!rows.length) {
     const colspan =
       currentPersonHasUSMarket()
-        ? 15
-        : 12;
+        ? 16
+        : 13;
 
     dailyBody.innerHTML =
       `<tr><td colspan="${colspan}" class="empty">此篩選條件下沒有每日資產</td></tr>`;
@@ -2133,6 +2087,10 @@ function renderDaily() {
 
           <td>
           ${esc(r.Date)}
+          </td>
+
+          <td>
+          ${esc(r.PersonName || '')}
           </td>
 
           <td>
@@ -2241,6 +2199,11 @@ function openDailyDialog() {
     '目前人員：' +
     person.Name;
 
+  if (typeof dailyPersonName !== 'undefined') {
+    dailyPersonName.value =
+      person.Name || '';
+  }
+
   updateMarketVisibility();
 
   dailyID.value =
@@ -2312,6 +2275,11 @@ function editDaily(id) {
 
   updateMarketVisibility();
 
+  if (typeof dailyPersonName !== 'undefined') {
+    dailyPersonName.value =
+      row.PersonName || '';
+  }
+
   dailyID.value =
     row.ID;
 
@@ -2364,12 +2332,15 @@ async function saveDaily() {
     return;
   }
 
+  const personID =
+    selectedPersonID();
+
   const data = {
     ID:
       dailyID.value || '',
 
     PersonID:
-      selectedPersonID(),
+      personID,
 
     Date:
       dailyDate.value,
@@ -2405,52 +2376,65 @@ async function saveDaily() {
       +adjustmentAmount.value || 0
   };
 
-  const res =
-    await apiPost({
-      action:
-        dailyID.value
-          ? 'updateDaily'
-          : 'saveDaily',
+  setSaving(
+    dailySaveBtn,
+    true
+  );
 
-      data
-    });
+  try {
+    const res =
+      await apiPost({
+        action:
+          dailyID.value
+            ? 'updateDaily'
+            : 'saveDaily',
 
-  if (!res.success) {
-    return alert(
-      res.message
-    );
-  }
+        data
+      });
 
-  // V24 後端會回傳本次實際儲存的開盤 / 收盤值。
-  // 若沒有 data，通常代表 Apps Script Web App 還是舊部署版本。
-  const missingTW =
-    !res.data ||
-    res.data.TWOpenValue === undefined ||
-    res.data.TWCloseValue === undefined;
+    if (!res.success) {
+      return alert(
+        res.message
+      );
+    }
 
-  const missingUS =
-    currentPersonHasUSMarket() &&
-    (
-      !res.data ||
-      res.data.USOpenValue === undefined ||
-      res.data.USCloseValue === undefined
-    );
+    // V31：只替換目前人員的每日資產，不再整站 loadAll
+    if (
+      Array.isArray(res.daily)
+    ) {
+      state.daily =
+        replaceRowsForPerson(
+          state.daily,
+          personID,
+          res.daily
+        );
 
-  if (
-    missingTW ||
-    missingUS
-  ) {
+      refreshFilterOptions();
+      renderDaily();
+      renderDashboard();
+
+      dailyDialog.close();
+      return;
+    }
+
+    // 舊版後端相容 fallback
+    dailyDialog.close();
+    await loadAll();
+
+  } catch (err) {
+    console.error(err);
+
     alert(
-      '前端已更新，但 Apps Script 可能仍是舊部署版本。\n' +
-      '請重新部署 Code.gs 新版本後再試一次。'
+      '儲存失敗：' +
+      err.message
+    );
+  } finally {
+    setSaving(
+      dailySaveBtn,
+      false
     );
   }
-
-  dailyDialog.close();
-
-  await loadAll();
 }
-
 
 async function deleteDaily(id) {
   if (
@@ -2696,45 +2680,87 @@ async function saveBaseInventory() {
     );
   }
 
-  const res =
-    await apiPost({
-      action:
-        'saveBaseInventory',
+  const personID =
+    selectedPersonID();
 
-      data:{
-        PersonID:
-          selectedPersonID(),
+  setSaving(
+    baseSaveBtn,
+    true
+  );
 
-        Market:
-          baseMarket.value,
+  try {
+    const res =
+      await apiPost({
+        action:
+          'saveBaseInventory',
 
-        StockCode:
-          baseCode.value
-            .trim()
-            .toUpperCase(),
+        data:{
+          PersonID:
+            personID,
 
-        Quantity:
-          +baseQty.value || 0,
+          Market:
+            baseMarket.value,
 
-        AverageCost:
-          +baseCost.value || 0,
+          StockCode:
+            baseCode.value
+              .trim()
+              .toUpperCase(),
 
-        CurrentPrice:
-          +basePrice.value || 0
-      }
-    });
+          Quantity:
+            +baseQty.value || 0,
 
-  if (!res.success) {
-    return alert(
-      res.message
+          AverageCost:
+            +baseCost.value || 0,
+
+          CurrentPrice:
+            +basePrice.value || 0
+        }
+      });
+
+    if (!res.success) {
+      return alert(
+        res.message
+      );
+    }
+
+    if (
+      res.baseInventory &&
+      Array.isArray(res.inventory)
+    ) {
+      state.baseInventory =
+        upsertById(
+          state.baseInventory,
+          res.baseInventory
+        );
+
+      state.inventory =
+        replaceRowsForPerson(
+          state.inventory,
+          personID,
+          res.inventory
+        );
+
+      baseDialog.close();
+      return;
+    }
+
+    baseDialog.close();
+    await loadAll();
+
+  } catch (err) {
+    console.error(err);
+
+    alert(
+      '儲存失敗：' +
+      err.message
+    );
+  } finally {
+    setSaving(
+      baseSaveBtn,
+      false
     );
   }
-
-  baseDialog.close();
-
-  await loadAll();
 }
-
 
 async function deleteBase(id) {
   if (
@@ -2976,12 +3002,15 @@ async function saveTrade() {
     );
   }
 
+  const personID =
+    selectedPersonID();
+
   const data = {
     ID:
       tradeID.value || '',
 
     PersonID:
-      selectedPersonID(),
+      personID,
 
     Date:
       tradeDate.value,
@@ -3013,27 +3042,68 @@ async function saveTrade() {
       tradeNote.value.trim()
   };
 
-  const res =
-    await apiPost({
-      action:
-        tradeID.value
-          ? 'updateTrade'
-          : 'saveTrade',
+  setSaving(
+    tradeSaveBtn,
+    true
+  );
 
-      data
-    });
+  try {
+    const res =
+      await apiPost({
+        action:
+          tradeID.value
+            ? 'updateTrade'
+            : 'saveTrade',
 
-  if (!res.success) {
-    return alert(
-      res.message
+        data
+      });
+
+    if (!res.success) {
+      return alert(
+        res.message
+      );
+    }
+
+    if (
+      res.trade &&
+      Array.isArray(res.inventory)
+    ) {
+      state.trades =
+        upsertById(
+          state.trades,
+          res.trade
+        );
+
+      state.inventory =
+        replaceRowsForPerson(
+          state.inventory,
+          personID,
+          res.inventory
+        );
+
+      refreshFilterOptions();
+
+      tradeDialog.close();
+      return;
+    }
+
+    tradeDialog.close();
+    await loadAll();
+
+  } catch (err) {
+    console.error(err);
+
+    alert(
+      '儲存失敗：' +
+      err.message
+    );
+  } finally {
+    setSaving(
+      tradeSaveBtn,
+      false
     );
   }
-
-  tradeDialog.close();
-
-  await loadAll();
 }
-
 
 async function deleteTrade(id) {
   if (
@@ -3198,42 +3268,92 @@ async function savePerson() {
   const editing =
     !!pID.value;
 
-  const res =
-    await apiPost({
-      action:
-        editing
-          ? 'updatePerson'
-          : 'savePerson',
+  const oldID =
+    pID.value || '';
 
-      data:{
-        ID:
-          pID.value || '',
+  setSaving(
+    personSaveBtn,
+    true
+  );
 
-        Name:
-          name,
+  try {
+    const res =
+      await apiPost({
+        action:
+          editing
+            ? 'updatePerson'
+            : 'savePerson',
 
-        MarketScope:
-          pMarketScope.value,
+        data:{
+          ID:
+            oldID,
 
-        Status:
-          pStatus.value
+          Name:
+            name,
+
+          MarketScope:
+            pMarketScope.value,
+
+          Status:
+            pStatus.value
+        }
+      });
+
+    if (!res.success) {
+      return alert(
+        res.message
+      );
+    }
+
+    if (res.person) {
+      state.persons =
+        upsertById(
+          state.persons,
+          res.person
+        );
+
+      if (editing) {
+        syncPersonNameLocally(
+          res.person.ID,
+          res.person.Name
+        );
       }
-    });
 
-  if (!res.success) {
-    return alert(
-      res.message
+      refreshPersonSelect(
+        editing
+          ? res.person.ID
+          : currentPerson.value
+      );
+
+      personDialog.close();
+
+      pID.value = '';
+      pName.value = '';
+
+      renderAll();
+      return;
+    }
+
+    personDialog.close();
+    pID.value = '';
+    pName.value = '';
+
+    await loadAll();
+
+  } catch (err) {
+    console.error(err);
+
+    alert(
+      '儲存失敗：' +
+      err.message
+    );
+  } finally {
+    setSaving(
+      personSaveBtn,
+      false
     );
   }
-
-  personDialog.close();
-
-  pID.value = '';
-  pName.value = '';
-
-  await loadAll();
 }
-
 
 async function updatePerson() {
   return await savePerson();
