@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>股票管理系統</title>
+<title>投資管理系統</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 :root {
@@ -600,7 +600,7 @@ dialog::backdrop {
 </head>
 <body>
 <header>
-  <h1>股票管理系統</h1>
+  <h1>投資管理系統</h1>
 </header>
 
 <div class="container">
@@ -653,6 +653,17 @@ dialog::backdrop {
           <div class="label">開盤台股市值</div>
           <div class="value" id="dTWOpen">NT$ 0</div>
         </div>
+        
+        <div class="kpi-card">
+          <div class="label">銀行帳戶<br>（扣除今日交易金額）</div>
+          <div class="value" id="dBankAfter">NT$ 0</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="label">盤前資金狀態</div>
+          <div class="value" id="dPreAdjustmentAmount">NT$ 0</div>
+          <div class="sub" id="dPreAdjustmentType">—</div>
+        </div>
 
         <div class="kpi-card">
           <div class="label">收盤台股市值</div>
@@ -682,20 +693,9 @@ dialog::backdrop {
         </div>
 
         <div class="kpi-card">
-          <div class="label">銀行帳戶<br>（扣除今日交易金額）</div>
-          <div class="value" id="dBankAfter">NT$ 0</div>
-        </div>
-
-        <div class="kpi-card">
-          <div class="label">盤前資金狀態</div>
-          <div class="value" id="dPreAdjustmentType">—</div>
-          <div class="sub" id="dPreAdjustmentAmount">NT$ 0</div>
-        </div>
-
-        <div class="kpi-card">
           <div class="label">盤後資金狀態</div>
-          <div class="value" id="dPostAdjustmentType">—</div>
-          <div class="sub" id="dPostAdjustmentAmount">NT$ 0</div>
+          <div class="value" id="dPostAdjustmentAmount">NT$ 0</div>
+          <div class="sub" id="dPostAdjustmentType">—</div>
         </div>
       </div>
 
