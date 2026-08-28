@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>投資管理系統</title>
+<title>股票管理系統</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 :root {
@@ -600,7 +600,7 @@ dialog::backdrop {
 </head>
 <body>
 <header>
-  <h1>投資管理系統</h1>
+  <h1>股票管理系統</h1>
 </header>
 
 <div class="container">
@@ -655,18 +655,6 @@ dialog::backdrop {
         </div>
 
         <div class="kpi-card">
-          <div class="label">銀行帳戶<br>（扣除今日交易金額）</div>
-          <div class="value" id="dBankAfter">NT$ 0</div>
-        </div>
-
-        <div class="kpi-card">
-          <div class="label">盤前資金狀態</div>
-          <div class="value" id="dPreAdjustmentAmount">NT$ 0</div>
-          <div class="sub" id="dPreAdjustmentType">—</div>
-          
-        </div>
-
-        <div class="kpi-card">
           <div class="label">收盤台股市值</div>
           <div class="value" id="dTWClose">NT$ 0</div>
           <div class="sub" id="dTWRate">水位 0%</div>
@@ -694,9 +682,20 @@ dialog::backdrop {
         </div>
 
         <div class="kpi-card">
+          <div class="label">銀行帳戶<br>（扣除今日交易金額）</div>
+          <div class="value" id="dBankAfter">NT$ 0</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="label">盤前資金狀態</div>
+          <div class="value" id="dPreAdjustmentType">—</div>
+          <div class="sub" id="dPreAdjustmentAmount">NT$ 0</div>
+        </div>
+
+        <div class="kpi-card">
           <div class="label">盤後資金狀態</div>
-          <div class="value" id="dPostAdjustmentAmount">NT$ 0</div>
-          <div class="sub" id="dPostAdjustmentType">—</div>  
+          <div class="value" id="dPostAdjustmentType">—</div>
+          <div class="sub" id="dPostAdjustmentAmount">NT$ 0</div>
         </div>
       </div>
 
@@ -793,11 +792,11 @@ dialog::backdrop {
     <div class="form-grid" style="margin-top:18px;">
       <div class="field-card">
         <label>人員</label>
-        <select id="dailyPersonID" onchange="updateDailyTabVisibility()"></select>
+        <select id="dailyPersonID" onchange="updateDailyTabVisibility(); applyPreviousBankAfterTradeToBankBalance()"></select>
       </div>
       <div class="field-card">
         <label>日期</label>
-        <input id="dailyDate" type="date">
+        <input id="dailyDate" type="date" onchange="applyPreviousBankAfterTradeToBankBalance()">
       </div>
     </div>
 
@@ -858,14 +857,14 @@ dialog::backdrop {
             </div>
             <div class="field-card">
               <label>盤後資金狀態</label>
-              <select id="postAdjustmentType">
+              <select id="twPostAdjustmentType">
                 <option value="可佈局">可佈局</option>
                 <option value="調節">調節</option>
               </select>
             </div>
             <div class="field-card">
               <label>盤後可佈局 / 調節金額</label>
-              <input id="postAdjustmentAmount" type="number" step="1">
+              <input id="twPostAdjustmentAmount" type="number" step="1">
             </div>
             <div class="field-card full">
               <label>當日成交股票（股票代號／股數／成交金額）</label>
@@ -910,7 +909,7 @@ dialog::backdrop {
 
         <div class="phase-card post">
           <h4>盤後資料</h4>
-          <div class="phase-note">盤後重點：收盤美股市值，與盤後資金資訊同步顯示</div>
+          <div class="phase-note">盤後重點：收盤美股市值、盤後資金狀態</div>
           <div class="section-title">美股</div>
           <div class="form-grid">
             <div class="field-card">
@@ -927,13 +926,14 @@ dialog::backdrop {
             </div>
             <div class="field-card">
               <label>盤後資金狀態</label>
-              <select id="postAdjustmentTypeUSMirror" disabled>
-                <option value="">與台股頁籤共用</option>
+              <select id="usPostAdjustmentType">
+                <option value="可佈局">可佈局</option>
+                <option value="調節">調節</option>
               </select>
             </div>
             <div class="field-card">
               <label>盤後可佈局 / 調節金額</label>
-              <input id="postAdjustmentAmountUSMirror" type="number" readonly>
+              <input id="usPostAdjustmentAmount" type="number" step="0.01">
             </div>
             <div class="field-card full">
               <label>當日成交股票（股票代號／股數／成交金額）</label>
@@ -1294,8 +1294,33 @@ function renderDashboard() {
   $('dBankAfter').textContent = fmtTWD(row.BankAfterTrade);
   $('dPreAdjustmentType').textContent = row.PreAdjustmentType || '—';
   $('dPreAdjustmentAmount').textContent = fmtTWD(row.PreAdjustmentAmount);
-  $('dPostAdjustmentType').textContent = row.PostAdjustmentType || '—';
-  $('dPostAdjustmentAmount').textContent = fmtTWD(row.PostAdjustmentAmount);
+  const twPostType =
+    row.TWPostAdjustmentType ||
+    row.PostAdjustmentType ||
+    '—';
+
+  const twPostAmount =
+    row.TWPostAdjustmentAmount ??
+    row.PostAdjustmentAmount ??
+    0;
+
+  const usPostType =
+    row.USPostAdjustmentType ||
+    '—';
+
+  const usPostAmount =
+    row.USPostAdjustmentAmount ??
+    0;
+
+  $('dPostAdjustmentType').textContent =
+    personHasUS(personID)
+      ? `台股：${twPostType} / 美股：${usPostType}`
+      : twPostType;
+
+  $('dPostAdjustmentAmount').textContent =
+    personHasUS(personID)
+      ? `${fmtTWD(twPostAmount)} / ${fmtUSD(usPostAmount)}`
+      : fmtTWD(twPostAmount);
 
   renderDashboardChart();
 }
@@ -1447,9 +1472,20 @@ function renderDaily() {
               <div>${statusBadge(r.PreAdjustmentType)}${fmtTWD(r.PreAdjustmentAmount)}</div>
             </div>
             <div class="status-item">
-              <div class="status-label">盤後資金狀態</div>
-              <div>${statusBadge(r.PostAdjustmentType)}${fmtTWD(r.PostAdjustmentAmount)}</div>
+              <div class="status-label">台股盤後資金狀態</div>
+              <div>
+                ${statusBadge(r.TWPostAdjustmentType || r.PostAdjustmentType)}
+                ${fmtTWD(r.TWPostAdjustmentAmount ?? r.PostAdjustmentAmount)}
+              </div>
             </div>
+            ${personHasUS(r.PersonID) ? `
+            <div class="status-item">
+              <div class="status-label">美股盤後資金狀態</div>
+              <div>
+                ${statusBadge(r.USPostAdjustmentType || '可佈局')}
+                ${fmtUSD(r.USPostAdjustmentAmount || 0)}
+              </div>
+            </div>` : ''}
           </div>
         </td>
         <td>
@@ -1476,7 +1512,6 @@ function syncMirrorFields() {
   $('todayTradeAmountUSMirror').value = $('todayTradeAmount').value || 0;
   $('bankAfterTradeUSMirror').value = $('bankAfterTradePreview').value || 0;
   $('preAdjustmentAmountUSMirror').value = $('preAdjustmentAmount').value || 0;
-  $('postAdjustmentAmountUSMirror').value = $('postAdjustmentAmount').value || 0;
   $('postNoteUSMirror').value = $('postNote').value || '';
 }
 
@@ -1503,6 +1538,50 @@ function updateDailyTabVisibility() {
   if (!allowed.includes(nextTab)) nextTab = allowed[0] || 'TW';
 
   setDailyMarketTab(nextTab);
+}
+
+
+function getPreviousDailyAsset(personID, currentDate) {
+  const pid = String(personID || '');
+  const targetDate = String(currentDate || '');
+
+  if (!pid || !targetDate) return null;
+
+  // 找「目前日期之前」最近一筆每日資產。
+  // 這樣遇到週末 / 休市日，也能承接上一個有資料的交易日。
+  return (state.daily || [])
+    .filter(r =>
+      String(r.PersonID || '') === pid &&
+      String(r.Date || '') < targetDate
+    )
+    .sort((a, b) =>
+      String(b.Date || '').localeCompare(String(a.Date || ''))
+    )[0] || null;
+}
+
+function applyPreviousBankAfterTradeToBankBalance() {
+  // 修改既有資料時，不自動覆蓋原本銀行帳戶金額。
+  if ($('dailyID').value) return;
+
+  const personID = $('dailyPersonID').value;
+  const currentDate = $('dailyDate').value;
+
+  const previous = getPreviousDailyAsset(
+    personID,
+    currentDate
+  );
+
+  // 沒有前一筆資料時維持 0。
+  const previousBankAfterTrade =
+    previous?.BankAfterTrade ??
+    0;
+
+  $('bankBalance').value =
+    Number(previousBankAfterTrade || 0);
+
+  // 今日交易尚未輸入時，扣除交易後金額仍依原規則顯示 0。
+  updateBankAfterTradePreview();
+  syncMirrorFields();
 }
 
 function updateBankAfterTradePreview() {
@@ -1532,7 +1611,7 @@ function updateBankAfterTradePreview() {
 
 function bindSyncEvents() {
   $('preAdjustmentAmount').addEventListener('input', syncMirrorFields);
-  $('postAdjustmentAmount').addEventListener('input', syncMirrorFields);
+  $('twPostAdjustmentAmount').addEventListener('input', syncMirrorFields);
   $('bankBalance').addEventListener('input', syncMirrorFields);
   $('todayTradeAmount').addEventListener('input', syncMirrorFields);
   $('postNote').addEventListener('input', syncMirrorFields);
@@ -1557,13 +1636,19 @@ function openDailyDialog() {
   $('bankAfterTradePreview').value = 0;
   $('preAdjustmentType').value = '可佈局';
   $('preAdjustmentAmount').value = 0;
-  $('postAdjustmentType').value = '可佈局';
-  $('postAdjustmentAmount').value = 0;
+  $('twPostAdjustmentType').value = '可佈局';
+  $('twPostAdjustmentAmount').value = 0;
+  $('usPostAdjustmentType').value = '可佈局';
+  $('usPostAdjustmentAmount').value = 0;
   $('postNote').value = '';
   $('currentMarketTab').value = 'TW';
 
   updateDailyTabVisibility();
-  updateBankAfterTradePreview();
+
+  // 前一日 / 前一個有資料交易日的「扣除交易後金額」
+  // 自動帶入今天的「銀行帳戶金額」。
+  applyPreviousBankAfterTradeToBankBalance();
+
   syncMirrorFields();
   $('dailyDialog').showModal();
 }
@@ -1593,8 +1678,23 @@ function editDaily(id) {
   $('bankAfterTradePreview').value = row.BankAfterTrade || 0;
   $('preAdjustmentType').value = row.PreAdjustmentType || '可佈局';
   $('preAdjustmentAmount').value = row.PreAdjustmentAmount || 0;
-  $('postAdjustmentType').value = row.PostAdjustmentType || '可佈局';
-  $('postAdjustmentAmount').value = row.PostAdjustmentAmount || 0;
+  $('twPostAdjustmentType').value =
+    row.TWPostAdjustmentType ||
+    row.PostAdjustmentType ||
+    '可佈局';
+
+  $('twPostAdjustmentAmount').value =
+    row.TWPostAdjustmentAmount ??
+    row.PostAdjustmentAmount ??
+    0;
+
+  $('usPostAdjustmentType').value =
+    row.USPostAdjustmentType ||
+    '可佈局';
+
+  $('usPostAdjustmentAmount').value =
+    row.USPostAdjustmentAmount ??
+    0;
   $('postNote').value = row.PostNote || '';
 
   const preferUS = getAllowedTabs(row.PersonID).length === 1 && getAllowedTabs(row.PersonID)[0] === 'US';
@@ -1637,8 +1737,18 @@ async function saveDaily() {
 
     PreAdjustmentType: $('preAdjustmentType').value,
     PreAdjustmentAmount: Number($('preAdjustmentAmount').value || 0),
-    PostAdjustmentType: $('postAdjustmentType').value,
-    PostAdjustmentAmount: Number($('postAdjustmentAmount').value || 0),
+    // 台股盤後資金
+    TWPostAdjustmentType: $('twPostAdjustmentType').value,
+    TWPostAdjustmentAmount: Number($('twPostAdjustmentAmount').value || 0),
+
+    // 美股盤後資金
+    USPostAdjustmentType: $('usPostAdjustmentType').value,
+    USPostAdjustmentAmount: Number($('usPostAdjustmentAmount').value || 0),
+
+    // 保留舊欄位相容性，先以台股盤後值帶入
+    PostAdjustmentType: $('twPostAdjustmentType').value,
+    PostAdjustmentAmount: Number($('twPostAdjustmentAmount').value || 0),
+
     PostNote: $('postNote').value.trim()
   };
 
