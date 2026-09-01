@@ -692,11 +692,7 @@ dialog::backdrop {
           <div class="value" id="dTrade">NT$ 0</div>
         </div>
 
-        <div class="kpi-card">
-          <div class="label">盤後資金狀態</div>
-          <div class="value" id="dPostAdjustmentAmount">—</div>
-          <div class="sub" id="dPostAdjustmentType">—</div>
-        </div>
+
       </div>
 
       <div class="chart-card">
@@ -826,21 +822,21 @@ dialog::backdrop {
             </div>
             <div class="field-card">
               <label>盤前資金狀態</label>
-              <select id="preAdjustmentType">
+              <select id="twPreAdjustmentType">
                 <option value="可佈局">可佈局</option>
                 <option value="調節">調節</option>
               </select>
             </div>
             <div class="field-card">
               <label>盤前可佈局 / 調節金額</label>
-              <input id="preAdjustmentAmount" type="number" step="1">
+              <input id="twPreAdjustmentAmount" type="number" step="1">
             </div>
           </div>
         </div>
 
         <div class="phase-card post">
           <h4>盤後資料</h4>
-          <div class="phase-note">盤後重點：收盤市值、今日交易、盤後資金狀態</div>
+          <div class="phase-note">盤後重點：收盤市值、今日交易</div>
           <div class="section-title">台股</div>
           <div class="form-grid">
             <div class="field-card">
@@ -854,17 +850,6 @@ dialog::backdrop {
             <div class="field-card full">
               <label>銀行帳戶（扣除今日交易金額）<br><span style="font-weight:400;">自動計算，可手動修改</span></label>
               <input id="bankAfterTradePreview" type="number" step="1">
-            </div>
-            <div class="field-card">
-              <label>盤後資金狀態</label>
-              <select id="twPostAdjustmentType">
-                <option value="可佈局">可佈局</option>
-                <option value="調節">調節</option>
-              </select>
-            </div>
-            <div class="field-card">
-              <label>盤後可佈局 / 調節金額</label>
-              <input id="twPostAdjustmentAmount" type="number" step="1">
             </div>
             <div class="field-card full">
               <label>當日成交股票（股票代號／股數／成交金額）</label>
@@ -896,20 +881,21 @@ dialog::backdrop {
             </div>
             <div class="field-card">
               <label>盤前資金狀態</label>
-              <select id="preAdjustmentTypeUSMirror" disabled>
-                <option value="">與台股頁籤共用</option>
+              <select id="usPreAdjustmentType">
+                <option value="可佈局">可佈局</option>
+                <option value="調節">調節</option>
               </select>
             </div>
             <div class="field-card">
               <label>盤前可佈局 / 調節金額</label>
-              <input id="preAdjustmentAmountUSMirror" type="number" readonly>
+              <input id="usPreAdjustmentAmount" type="number" step="0.01">
             </div>
           </div>
         </div>
 
         <div class="phase-card post">
           <h4>盤後資料</h4>
-          <div class="phase-note">盤後重點：收盤美股市值、盤後資金狀態</div>
+          <div class="phase-note">盤後重點：收盤美股市值</div>
           <div class="section-title">美股</div>
           <div class="form-grid">
             <div class="field-card">
@@ -923,17 +909,6 @@ dialog::backdrop {
             <div class="field-card full">
               <label>銀行帳戶（扣除今日交易金額）</label>
               <input id="bankAfterTradeUSMirror" type="number" readonly>
-            </div>
-            <div class="field-card">
-              <label>盤後資金狀態</label>
-              <select id="usPostAdjustmentType">
-                <option value="可佈局">可佈局</option>
-                <option value="調節">調節</option>
-              </select>
-            </div>
-            <div class="field-card">
-              <label>盤後可佈局 / 調節金額</label>
-              <input id="usPostAdjustmentAmount" type="number" step="0.01">
             </div>
             <div class="field-card full">
               <label>當日成交股票（股票代號／股數／成交金額）</label>
@@ -1255,8 +1230,6 @@ function resetDashboardCards() {
   $('dBankAfter').textContent = 'NT$ 0';
   $('dPreAdjustmentType').textContent = '—';
   $('dPreAdjustmentAmount').textContent = 'NT$ 0';
-  $('dPostAdjustmentType').textContent = '—';
-  $('dPostAdjustmentAmount').textContent = '—';
 }
 
 function renderDashboard() {
@@ -1292,40 +1265,37 @@ function renderDashboard() {
   $('dBank').textContent = fmtTWD(row.BankBalance);
   $('dTrade').textContent = fmtTWD(row.TodayTradeAmount);
   $('dBankAfter').textContent = fmtTWD(row.BankAfterTrade);
-  $('dPreAdjustmentType').textContent = row.PreAdjustmentType || '—';
-  $('dPreAdjustmentAmount').textContent = fmtTWD(row.PreAdjustmentAmount);
-
   const scope = getPersonScope(personID);
 
-  const twPostType =
-    row.TWPostAdjustmentType ||
-    row.PostAdjustmentType ||
+  const twPreType =
+    row.TWPreAdjustmentType ||
+    row.PreAdjustmentType ||
     '—';
 
-  const twPostAmount =
-    row.TWPostAdjustmentAmount ??
-    row.PostAdjustmentAmount ??
+  const twPreAmount =
+    row.TWPreAdjustmentAmount ??
+    row.PreAdjustmentAmount ??
     0;
 
-  const usPostType =
-    row.USPostAdjustmentType ||
+  const usPreType =
+    row.USPreAdjustmentType ||
     '—';
 
-  const usPostAmount =
-    row.USPostAdjustmentAmount ??
+  const usPreAmount =
+    row.USPreAdjustmentAmount ??
     0;
 
   if (scope === '台股') {
-    $('dPostAdjustmentType').textContent = `台股：${twPostType}`;
-    $('dPostAdjustmentAmount').textContent = fmtTWD(twPostAmount);
+    $('dPreAdjustmentType').textContent = `台股：${twPreType}`;
+    $('dPreAdjustmentAmount').textContent = fmtTWD(twPreAmount);
   } else if (scope === '美股') {
-    $('dPostAdjustmentType').textContent = `美股：${usPostType}`;
-    $('dPostAdjustmentAmount').textContent = fmtUSD(usPostAmount);
+    $('dPreAdjustmentType').textContent = `美股：${usPreType}`;
+    $('dPreAdjustmentAmount').textContent = fmtUSD(usPreAmount);
   } else {
-    $('dPostAdjustmentType').textContent =
-      `台股：${twPostType} / 美股：${usPostType}`;
-    $('dPostAdjustmentAmount').textContent =
-      `${fmtTWD(twPostAmount)} / ${fmtUSD(usPostAmount)}`;
+    $('dPreAdjustmentType').textContent =
+      `台股：${twPreType} / 美股：${usPreType}`;
+    $('dPreAdjustmentAmount').textContent =
+      `${fmtTWD(twPreAmount)} / ${fmtUSD(usPreAmount)}`;
   }
 renderDashboardChart();
 }
@@ -1472,24 +1442,21 @@ function renderDaily() {
         </td>
         <td>
           <div class="status-stack">
+            ${(scope === '台股' || scope === '台/美股') ? `
             <div class="status-item">
-              <div class="status-label">盤前資金狀態</div>
-              <div>${statusBadge(r.PreAdjustmentType)}${fmtTWD(r.PreAdjustmentAmount)}</div>
-            </div>
-            ${(getPersonScope(r.PersonID) === '台股' || getPersonScope(r.PersonID) === '台/美股') ? `
-            <div class="status-item">
-              <div class="status-label">台股盤後資金狀態</div>
+              <div class="status-label">台股盤前資金狀態</div>
               <div>
-                ${statusBadge(r.TWPostAdjustmentType || r.PostAdjustmentType)}
-                ${fmtTWD(r.TWPostAdjustmentAmount ?? r.PostAdjustmentAmount)}
+                ${statusBadge(r.TWPreAdjustmentType || r.PreAdjustmentType)}
+                ${fmtTWD(r.TWPreAdjustmentAmount ?? r.PreAdjustmentAmount)}
               </div>
             </div>` : ''}
-            ${personHasUS(r.PersonID) ? `
+
+            ${(scope === '美股' || scope === '台/美股') ? `
             <div class="status-item">
-              <div class="status-label">美股盤後資金狀態</div>
+              <div class="status-label">美股盤前資金狀態</div>
               <div>
-                ${statusBadge(r.USPostAdjustmentType || '可佈局')}
-                ${fmtUSD(r.USPostAdjustmentAmount || 0)}
+                ${statusBadge(r.USPreAdjustmentType || '可佈局')}
+                ${fmtUSD(r.USPreAdjustmentAmount || 0)}
               </div>
             </div>` : ''}
           </div>
@@ -1517,7 +1484,6 @@ function syncMirrorFields() {
   $('bankBalanceUSMirror').value = $('bankBalance').value || 0;
   $('todayTradeAmountUSMirror').value = $('todayTradeAmount').value || 0;
   $('bankAfterTradeUSMirror').value = $('bankAfterTradePreview').value || 0;
-  $('preAdjustmentAmountUSMirror').value = $('preAdjustmentAmount').value || 0;
   $('postNoteUSMirror').value = $('postNote').value || '';
 }
 
@@ -1617,8 +1583,6 @@ function updateBankAfterTradePreview() {
 
 function bindSyncEvents() {
   [
-    'preAdjustmentAmount',
-    'twPostAdjustmentAmount',
     'bankBalance',
     'todayTradeAmount',
     'postNote'
@@ -1647,12 +1611,10 @@ function openDailyDialog() {
   $('bankBalance').value = 0;
   $('todayTradeAmount').value = '';
   $('bankAfterTradePreview').value = 0;
-  $('preAdjustmentType').value = '可佈局';
-  $('preAdjustmentAmount').value = 0;
-  $('twPostAdjustmentType').value = '可佈局';
-  $('twPostAdjustmentAmount').value = 0;
-  $('usPostAdjustmentType').value = '可佈局';
-  $('usPostAdjustmentAmount').value = 0;
+  $('twPreAdjustmentType').value = '可佈局';
+  $('twPreAdjustmentAmount').value = 0;
+  $('usPreAdjustmentType').value = '可佈局';
+  $('usPreAdjustmentAmount').value = 0;
   $('postNote').value = '';
   $('currentMarketTab').value = 'TW';
 
@@ -1689,26 +1651,23 @@ function editDaily(id) {
       ? ''
       : row.TodayTradeAmount;
   $('bankAfterTradePreview').value = row.BankAfterTrade || 0;
-  $('preAdjustmentType').value = row.PreAdjustmentType || '可佈局';
-  $('preAdjustmentAmount').value = row.PreAdjustmentAmount || 0;
-
-  // 台股 / 美股盤後資金狀態各自獨立
-  $('twPostAdjustmentType').value =
-    row.TWPostAdjustmentType ||
-    row.PostAdjustmentType ||
+  // 台股 / 美股盤前資金狀態各自獨立
+  $('twPreAdjustmentType').value =
+    row.TWPreAdjustmentType ||
+    row.PreAdjustmentType ||
     '可佈局';
 
-  $('twPostAdjustmentAmount').value =
-    row.TWPostAdjustmentAmount ??
-    row.PostAdjustmentAmount ??
+  $('twPreAdjustmentAmount').value =
+    row.TWPreAdjustmentAmount ??
+    row.PreAdjustmentAmount ??
     0;
 
-  $('usPostAdjustmentType').value =
-    row.USPostAdjustmentType ||
+  $('usPreAdjustmentType').value =
+    row.USPreAdjustmentType ||
     '可佈局';
 
-  $('usPostAdjustmentAmount').value =
-    row.USPostAdjustmentAmount ??
+  $('usPreAdjustmentAmount').value =
+    row.USPreAdjustmentAmount ??
     0;
 $('postNote').value = row.PostNote || '';
 
@@ -1750,20 +1709,21 @@ async function saveDaily() {
         $('bankAfterTradePreview').value || 0
       ),
 
-    PreAdjustmentType: $('preAdjustmentType').value,
-    PreAdjustmentAmount: Number($('preAdjustmentAmount').value || 0),
+    // 台股盤前資金狀態
+    TWPreAdjustmentType: $('twPreAdjustmentType').value,
+    TWPreAdjustmentAmount: Number($('twPreAdjustmentAmount').value || 0),
 
-    // 台股盤後資金狀態
-    TWPostAdjustmentType: $('twPostAdjustmentType').value,
-    TWPostAdjustmentAmount: Number($('twPostAdjustmentAmount').value || 0),
+    // 美股盤前資金狀態（與台股完全獨立）
+    USPreAdjustmentType: $('usPreAdjustmentType').value,
+    USPreAdjustmentAmount: Number($('usPreAdjustmentAmount').value || 0),
 
-    // 美股盤後資金狀態（完全獨立，不與台股共用）
-    USPostAdjustmentType: $('usPostAdjustmentType').value,
-    USPostAdjustmentAmount: Number($('usPostAdjustmentAmount').value || 0),
+    // 舊盤前欄位保留相容性，以台股盤前值寫入
+    PreAdjustmentType: $('twPreAdjustmentType').value,
+    PreAdjustmentAmount: Number($('twPreAdjustmentAmount').value || 0),
 
-    // 舊欄位保留相容性，以台股值寫入
-    PostAdjustmentType: $('twPostAdjustmentType').value,
-    PostAdjustmentAmount: Number($('twPostAdjustmentAmount').value || 0),
+    // 盤後資金狀態已取消，舊欄位保留空值相容
+    PostAdjustmentType: '',
+    PostAdjustmentAmount: 0,
 
     PostNote: $('postNote').value.trim()
   };
