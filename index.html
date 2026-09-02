@@ -836,7 +836,7 @@ dialog::backdrop {
 
         <div class="phase-card post">
           <h4>盤後資料</h4>
-          <div class="phase-note">盤後重點：收盤市值、今日交易</div>
+          <div class="phase-note">盤後重點：收盤市值、買入 / 賣出金額與明細</div>
           <div class="section-title">台股</div>
           <div class="form-grid">
             <div class="field-card">
@@ -844,16 +844,24 @@ dialog::backdrop {
               <input id="twCloseValue" type="number" step="1">
             </div>
             <div class="field-card">
-              <label>今日交易總金額</label>
-              <input id="todayTradeAmount" type="number" step="1" oninput="updateBankAfterTradePreview()">
+              <label>買入金額</label>
+              <input id="twBuyAmount" type="number" step="1" oninput="updateBankAfterTradePreview()">
+            </div>
+            <div class="field-card">
+              <label>賣出金額</label>
+              <input id="twSellAmount" type="number" step="1" oninput="updateBankAfterTradePreview()">
             </div>
             <div class="field-card full">
-              <label>銀行帳戶（扣除今日交易金額）<br><span style="font-weight:400;">自動計算，可手動修改</span></label>
+              <label>銀行帳戶（扣除今日交易金額）<br><span style="font-weight:400;">銀行帳戶 + 賣出金額 - 買入金額；可手動修改</span></label>
               <input id="bankAfterTradePreview" type="number" step="1">
             </div>
             <div class="field-card full">
-              <label>當日成交股票（股票代號／股數／成交金額）</label>
-              <textarea id="postNote" placeholder="例如：0056（2股 × 104.15）"></textarea>
+              <label>買入明細</label>
+              <textarea id="twBuyDetail" placeholder="例如：0056／2股／成交金額 104.15"></textarea>
+            </div>
+            <div class="field-card full">
+              <label>賣出明細</label>
+              <textarea id="twSellDetail" placeholder="例如：2330／1股／成交金額 1,160"></textarea>
             </div>
           </div>
         </div>
@@ -895,7 +903,7 @@ dialog::backdrop {
 
         <div class="phase-card post">
           <h4>盤後資料</h4>
-          <div class="phase-note">盤後重點：收盤美股市值</div>
+          <div class="phase-note">盤後重點：收盤美股市值、買入 / 賣出金額與明細</div>
           <div class="section-title">美股</div>
           <div class="form-grid">
             <div class="field-card">
@@ -903,16 +911,24 @@ dialog::backdrop {
               <input id="usCloseValue" type="number" step="0.01">
             </div>
             <div class="field-card">
-              <label>今日交易總金額</label>
-              <input id="todayTradeAmountUSMirror" type="number" readonly>
+              <label>買入金額 (USD)</label>
+              <input id="usBuyAmount" type="number" step="0.01" oninput="updateUSBankAfterTradePreview()">
+            </div>
+            <div class="field-card">
+              <label>賣出金額 (USD)</label>
+              <input id="usSellAmount" type="number" step="0.01" oninput="updateUSBankAfterTradePreview()">
             </div>
             <div class="field-card full">
-              <label>銀行帳戶（扣除今日交易金額）</label>
-              <input id="bankAfterTradeUSMirror" type="number" readonly>
+              <label>銀行帳戶（扣除今日交易金額）<br><span style="font-weight:400;">銀行帳戶 + 賣出金額 - 買入金額；可手動修改</span></label>
+              <input id="usBankAfterTradePreview" type="number" step="0.01">
             </div>
             <div class="field-card full">
-              <label>當日成交股票（股票代號／股數／成交金額）</label>
-              <textarea id="postNoteUSMirror" readonly></textarea>
+              <label>買入明細</label>
+              <textarea id="usBuyDetail" placeholder="例如：AAPL／2股／成交金額 430.50"></textarea>
+            </div>
+            <div class="field-card full">
+              <label>賣出明細</label>
+              <textarea id="usSellDetail" placeholder="例如：NVDA／1股／成交金額 178.20"></textarea>
             </div>
           </div>
         </div>
@@ -1409,11 +1425,19 @@ function renderDaily() {
       preLines.push(`開盤台股市值：${fmtTWD(r.TWOpenValue)}`);
       preLines.push(`台股水位：${Number(r.TWPositionRate || 0).toFixed(2)}%`);
       postLines.push(`收盤台股市值：${fmtTWD(r.TWCloseValue)}`);
+      postLines.push(`台股買入：${fmtTWD(r.TWBuyAmount || 0)}`);
+      postLines.push(`台股賣出：${fmtTWD(r.TWSellAmount || 0)}`);
+      if (r.TWBuyDetail) postLines.push(`買入明細：${esc(r.TWBuyDetail)}`);
+      if (r.TWSellDetail) postLines.push(`賣出明細：${esc(r.TWSellDetail)}`);
     }
     if (scope === '美股' || scope === '台/美股') {
       preLines.push(`開盤美股市值：${fmtUSD(r.USOpenValue)}`);
       preLines.push(`美股水位：${Number(r.USPositionRate || 0).toFixed(2)}%`);
       postLines.push(`收盤美股市值：${fmtUSD(r.USCloseValue)}`);
+      postLines.push(`美股買入：${fmtUSD(r.USBuyAmount || 0)}`);
+      postLines.push(`美股賣出：${fmtUSD(r.USSellAmount || 0)}`);
+      if (r.USBuyDetail) postLines.push(`買入明細：${esc(r.USBuyDetail)}`);
+      if (r.USSellDetail) postLines.push(`賣出明細：${esc(r.USSellDetail)}`);
     }
 
     return `
@@ -1430,14 +1454,18 @@ function renderDaily() {
           <div class="summary-box post-box">
             <div class="title">盤後摘要</div>
             <div>${postLines.join('<br>')}</div>
-            ${r.PostNote ? `<div style="margin-top:8px;"><b>當日成交股票：</b>${esc(r.PostNote)}</div>` : ''}
           </div>
         </td>
         <td>
           <div class="money-box">
             <div>銀行帳戶：${fmtTWD(r.BankBalance)}</div>
-            <div>今日交易：${fmtTWD(r.TodayTradeAmount)}</div>
-            <div>扣除交易後：${fmtTWD(r.BankAfterTrade)}</div>
+            <div>台股買入：${fmtTWD(r.TWBuyAmount || 0)}</div>
+            <div>台股賣出：${fmtTWD(r.TWSellAmount || 0)}</div>
+            <div>台股交易後：${fmtTWD(r.TWBankAfterTrade ?? r.BankAfterTrade)}</div>
+            ${personHasUS(r.PersonID) ? `
+            <div style="margin-top:6px;">美股買入：${fmtUSD(r.USBuyAmount || 0)}</div>
+            <div>美股賣出：${fmtUSD(r.USSellAmount || 0)}</div>
+            <div>美股交易後：${fmtUSD(r.USBankAfterTrade || 0)}</div>` : ''}
           </div>
         </td>
         <td>
@@ -1481,10 +1509,10 @@ function fillDailyPersonSelect(preferred='') {
 }
 
 function syncMirrorFields() {
+  // 目前銀行帳戶本金仍沿用同一筆資料；
+  // 但台股 / 美股的買入、賣出金額與明細完全獨立。
   $('bankBalanceUSMirror').value = $('bankBalance').value || 0;
-  $('todayTradeAmountUSMirror').value = $('todayTradeAmount').value || 0;
-  $('bankAfterTradeUSMirror').value = $('bankAfterTradePreview').value || 0;
-  $('postNoteUSMirror').value = $('postNote').value || '';
+  updateUSBankAfterTradePreview();
 }
 
 function setDailyMarketTab(tab) {
@@ -1557,39 +1585,79 @@ function applyPreviousBankAfterTradeToBankBalance() {
 }
 
 function updateBankAfterTradePreview() {
-  const bank =
-    Number(
-      $('bankBalance').value || 0
-    );
+  const bank = Number($('bankBalance').value || 0);
+  const buyAmount = Number($('twBuyAmount').value || 0);
+  const sellAmount = Number($('twSellAmount').value || 0);
 
-  const tradeRaw =
-    String(
-      $('todayTradeAmount').value ?? ''
-    ).trim();
-
-  // 今日交易總金額尚未輸入時，
-  // 銀行帳戶（扣除今日交易金額）固定顯示 0。
+  // 銀行帳戶（交易後） = 銀行帳戶 + 賣出金額 - 買入金額
   const bankAfterTrade =
-    tradeRaw === ''
-      ? 0
-      : bank -
-        Number(tradeRaw || 0);
+    bank +
+    sellAmount -
+    buyAmount;
 
   $('bankAfterTradePreview').value =
-    bankAfterTrade;
+    Number.isFinite(bankAfterTrade)
+      ? bankAfterTrade
+      : 0;
 
   syncMirrorFields();
+}
+
+function updateUSBankAfterTradePreview() {
+  const bank =
+    Number(
+      $('bankBalanceUSMirror')?.value ||
+      $('bankBalance')?.value ||
+      0
+    );
+
+  const buyAmount =
+    Number(
+      $('usBuyAmount')?.value ||
+      0
+    );
+
+  const sellAmount =
+    Number(
+      $('usSellAmount')?.value ||
+      0
+    );
+
+  const bankAfterTrade =
+    bank +
+    sellAmount -
+    buyAmount;
+
+  const preview =
+    $('usBankAfterTradePreview');
+
+  if (preview) {
+    preview.value =
+      Number.isFinite(bankAfterTrade)
+        ? bankAfterTrade
+        : 0;
+  }
 }
 
 function bindSyncEvents() {
   [
     'bankBalance',
-    'todayTradeAmount',
-    'postNote'
+    'twBuyAmount',
+    'twSellAmount'
   ].forEach(id => {
     const el = $(id);
     if (el) {
-      el.addEventListener('input', syncMirrorFields);
+      el.addEventListener('input', updateBankAfterTradePreview);
+    }
+  });
+
+  [
+    'usBuyAmount',
+    'usSellAmount'
+  ].forEach(id => {
+    const el = $(id);
+    if (el) {
+      el.addEventListener('input', updateUSBankAfterTradePreview);
     }
   });
 }
@@ -1609,13 +1677,22 @@ function openDailyDialog() {
   $('usCloseValue').value = 0;
   $('usPositionRate').value = 0;
   $('bankBalance').value = 0;
-  $('todayTradeAmount').value = '';
+
+  $('twBuyAmount').value = 0;
+  $('twSellAmount').value = 0;
+  $('twBuyDetail').value = '';
+  $('twSellDetail').value = '';
   $('bankAfterTradePreview').value = 0;
+
+  $('usBuyAmount').value = 0;
+  $('usSellAmount').value = 0;
+  $('usBuyDetail').value = '';
+  $('usSellDetail').value = '';
+  $('usBankAfterTradePreview').value = 0;
   $('twPreAdjustmentType').value = '可佈局';
   $('twPreAdjustmentAmount').value = 0;
   $('usPreAdjustmentType').value = '可佈局';
   $('usPreAdjustmentAmount').value = 0;
-  $('postNote').value = '';
   $('currentMarketTab').value = 'TW';
 
   updateDailyTabVisibility();
@@ -1644,13 +1721,23 @@ function editDaily(id) {
   $('usCloseValue').value = row.USCloseValue || 0;
   $('usPositionRate').value = row.USPositionRate || 0;
   $('bankBalance').value = row.BankBalance || 0;
-  $('todayTradeAmount').value =
-    row.TodayTradeAmount === '' ||
-    row.TodayTradeAmount === null ||
-    row.TodayTradeAmount === undefined
-      ? ''
-      : row.TodayTradeAmount;
-  $('bankAfterTradePreview').value = row.BankAfterTrade || 0;
+
+  $('twBuyAmount').value = row.TWBuyAmount || 0;
+  $('twSellAmount').value = row.TWSellAmount || 0;
+  $('twBuyDetail').value = row.TWBuyDetail || '';
+  $('twSellDetail').value = row.TWSellDetail || '';
+  $('bankAfterTradePreview').value =
+    row.TWBankAfterTrade ??
+    row.BankAfterTrade ??
+    0;
+
+  $('usBuyAmount').value = row.USBuyAmount || 0;
+  $('usSellAmount').value = row.USSellAmount || 0;
+  $('usBuyDetail').value = row.USBuyDetail || '';
+  $('usSellDetail').value = row.USSellDetail || '';
+  $('usBankAfterTradePreview').value =
+    row.USBankAfterTrade ??
+    0;
   // 台股 / 美股盤前資金狀態各自獨立
   $('twPreAdjustmentType').value =
     row.TWPreAdjustmentType ||
@@ -1669,14 +1756,12 @@ function editDaily(id) {
   $('usPreAdjustmentAmount').value =
     row.USPreAdjustmentAmount ??
     0;
-$('postNote').value = row.PostNote || '';
 
   const preferUS = getAllowedTabs(row.PersonID).length === 1 && getAllowedTabs(row.PersonID)[0] === 'US';
   $('currentMarketTab').value = preferUS ? 'US' : 'TW';
 
   updateDailyTabVisibility();
-  updateBankAfterTradePreview();
-  syncMirrorFields();
+  $('bankBalanceUSMirror').value = $('bankBalance').value || 0;
   $('dailyDialog').showModal();
 }
 
@@ -1695,19 +1780,30 @@ async function saveDaily() {
     USCloseValue: Number($('usCloseValue').value || 0),
     USPositionRate: Number($('usPositionRate').value || 0),
     BankBalance: Number($('bankBalance').value || 0),
+
+    // 台股買入 / 賣出
+    TWBuyAmount: Number($('twBuyAmount').value || 0),
+    TWSellAmount: Number($('twSellAmount').value || 0),
+    TWBuyDetail: $('twBuyDetail').value.trim(),
+    TWSellDetail: $('twSellDetail').value.trim(),
+    TWBankAfterTrade: Number($('bankAfterTradePreview').value || 0),
+
+    // 美股買入 / 賣出
+    USBuyAmount: Number($('usBuyAmount').value || 0),
+    USSellAmount: Number($('usSellAmount').value || 0),
+    USBuyDetail: $('usBuyDetail').value.trim(),
+    USSellDetail: $('usSellDetail').value.trim(),
+    USBankAfterTrade: Number($('usBankAfterTradePreview').value || 0),
+
+    // 舊欄位相容：
+    // 今日交易總金額 = 台股買入 - 台股賣出
+    // BankAfterTrade = 台股交易後銀行帳戶
     TodayTradeAmount:
-      String(
-        $('todayTradeAmount').value ?? ''
-      ).trim() === ''
-        ? ''
-        : Number(
-            $('todayTradeAmount').value
-          ),
+      Number($('twBuyAmount').value || 0) -
+      Number($('twSellAmount').value || 0),
 
     BankAfterTrade:
-      Number(
-        $('bankAfterTradePreview').value || 0
-      ),
+      Number($('bankAfterTradePreview').value || 0),
 
     // 台股盤前資金狀態
     TWPreAdjustmentType: $('twPreAdjustmentType').value,
@@ -1725,7 +1821,6 @@ async function saveDaily() {
     PostAdjustmentType: '',
     PostAdjustmentAmount: 0,
 
-    PostNote: $('postNote').value.trim()
   };
 
   setSaving($('dailySaveBtn'), true);
