@@ -135,6 +135,19 @@ button:disabled {
   margin:16px 0 18px;
 }
 
+.daily-filters {
+  grid-template-columns:repeat(3,minmax(160px,210px));
+}
+
+.daily-filters > div {
+  min-width:0;
+}
+
+.daily-filters select {
+  min-width:0;
+  max-width:100%;
+}
+
 label {
   display:block;
   margin-bottom:7px;
@@ -581,9 +594,22 @@ dialog::backdrop {
 
 @media(max-width:760px) {
   .filters,
+  .daily-filters,
   .form-grid,
   .card-grid {
-    grid-template-columns:1fr;
+    grid-template-columns:minmax(0,1fr);
+  }
+
+  .daily-filters {
+    width:100%;
+    gap:10px;
+  }
+
+  .daily-filters > div,
+  .daily-filters select {
+    width:100%;
+    min-width:0;
+    max-width:100%;
   }
 
   .toolbar h2,
@@ -593,7 +619,11 @@ dialog::backdrop {
   }
 
   .container {
-    padding:14px;
+    padding:12px;
+  }
+
+  .page-panel {
+    padding:16px;
   }
 }
 </style>
@@ -716,7 +746,7 @@ dialog::backdrop {
         <button onclick="openDailyDialog()">＋ 新增</button>
       </div>
 
-      <div class="filters" style="grid-template-columns:repeat(3,minmax(160px,210px));">
+      <div class="filters daily-filters">
         <div>
           <label>人員</label>
           <select id="dailyPersonFilter" onchange="renderDaily()"></select>
