@@ -1040,27 +1040,191 @@ function setSaving(button, saving) {
   }
 }
 
-async function apiGet(action) {
-  const url = `${API_URL}?action=${encodeURIComponent(action)}`;
-  const response = await fetch(url);
-  const text = await response.text();
-  if (text.trim().startsWith('<')) {
-    throw new Error('Apps Script API 回傳 HTML，請確認 Web App 網址與部署權限（任何人可存取）');
-  }
-  return JSON.parse(text);
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-async function apiPost(payload) {
-  const response = await fetch(API_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify(payload)
-  });
-  const text = await response.text();
-  if (text.trim().startsWith('<')) {
-    throw new Error('Apps Script API 回傳 HTML，請確認 Web App 網址與部署權限（任何人可存取）');
+function createClientID() {
+  if (
+    window.crypto &&
+    typeof window.crypto.randomUUID === 'function'
+  ) {
+    return window.crypto.randomUUID();
   }
-  return JSON.parse(text);
+
+  return (
+    'daily-' +
+    Date.now() +
+    '-' +
+    Math.random().toString(16).slice(2)
+  );
+}
+
+async function fetchWithTimeout(url, options = {}, timeoutMs = 15000) {
+  const controller = new AbortController();
+  const timer = setTimeout(
+    () => controller.abort(),
+    timeoutMs
+  );
+
+  try {
+    return await fetch(url, {
+      ...options,
+      signal: controller.signal
+    });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+function parseApiText(text, response, label) {
+  const trimmed = String(text || '').trim();
+
+  if (!response.ok) {
+    throw new Error(
+      `${label} HTTP ${response.status}`
+    );
+  }
+
+  if (!trimmed) {
+    throw new Error(
+      `${label} 回傳空白內容`
+    );
+  }
+
+  if (trimmed.startsWith('<')) {
+    const preview =
+      trimmed
+        .replace(/\s+/g, ' ')
+        .slice(0, 120);
+
+    console.warn(
+      `${label} 收到 HTML：`,
+      preview
+    );
+
+    throw new Error(
+      `${label} 暫時回傳 HTML，可能是 Apps Script / Google 服務短暫異常`
+    );
+  }
+
+  try {
+    return JSON.parse(trimmed);
+  } catch (err) {
+    console.warn(
+      `${label} 非 JSON 回傳：`,
+      trimmed.slice(0, 200)
+    );
+
+    throw new Error(
+      `${label} 回傳格式不是 JSON`
+    );
+  }
+}
+
+async function apiGet(action, retry = 3) {
+  let lastError = null;
+
+  for (let attempt = 1; attempt <= retry; attempt++) {
+    const url =
+      `${API_URL}?action=${encodeURIComponent(action)}&_t=${Date.now()}`;
+
+    try {
+      const response =
+        await fetchWithTimeout(
+          url,
+          {
+            method: 'GET',
+            cache: 'no-store'
+          },
+          15000
+        );
+
+      const text =
+        await response.text();
+
+      console.log(
+        `[apiGet:${action}] 第 ${attempt} 次`,
+        'HTTP',
+        response.status
+      );
+
+      return parseApiText(
+        text,
+        response,
+        `API ${action}`
+      );
+
+    } catch (err) {
+      lastError = err;
+
+      console.warn(
+        `[apiGet:${action}] 第 ${attempt} 次失敗`,
+        err
+      );
+
+      if (attempt < retry) {
+        await sleep(attempt * 1000);
+      }
+    }
+  }
+
+  throw new Error(
+    `讀取 API 失敗，已重試 ${retry} 次：${lastError?.message || '未知錯誤'}`
+  );
+}
+
+async function apiPost(payload, retry = 1) {
+  let lastError = null;
+
+  for (let attempt = 1; attempt <= retry; attempt++) {
+    try {
+      const response =
+        await fetchWithTimeout(
+          API_URL,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'text/plain;charset=utf-8'
+            },
+            body: JSON.stringify(payload),
+            cache: 'no-store'
+          },
+          15000
+        );
+
+      const text =
+        await response.text();
+
+      console.log(
+        `[apiPost:${payload.action}] 第 ${attempt} 次`,
+        'HTTP',
+        response.status
+      );
+
+      return parseApiText(
+        text,
+        response,
+        `API ${payload.action}`
+      );
+
+    } catch (err) {
+      lastError = err;
+
+      console.warn(
+        `[apiPost:${payload.action}] 第 ${attempt} 次失敗`,
+        err
+      );
+
+      if (attempt < retry) {
+        await sleep(attempt * 1000);
+      }
+    }
+  }
+
+  throw new Error(
+    `API 儲存失敗，已重試 ${retry} 次：${lastError?.message || '未知錯誤'}`
+  );
 }
 
 async function loadAll() {
@@ -1073,7 +1237,7 @@ async function loadAll() {
     renderAll();
   } catch (err) {
     console.error(err);
-    alert('讀取資料失敗：' + err.message);
+    alert('讀取資料失敗：' + err.message + '\n\n可稍後按重新整理再試一次。');
   }
 }
 
@@ -1790,8 +1954,18 @@ async function saveDaily() {
   const personID = $('dailyPersonID').value;
   if (!personID) return alert('請選擇人員');
 
+  const originalID = $('dailyID').value;
+  const isNew = !originalID;
+
+  // 新增時先由前端產生固定 ID。
+  // 若 POST 第一次其實已寫入、但回應途中失敗，
+  // 第二次重試仍會帶同一個 ID，避免重複新增。
+  const requestID =
+    originalID ||
+    createClientID();
+
   const data = {
-    ID: $('dailyID').value,
+    ID: requestID,
     PersonID: personID,
     Date: $('dailyDate').value,
     TWOpenValue: Number($('twOpenValue').value || 0),
@@ -1852,10 +2026,13 @@ async function saveDaily() {
   setSaving($('dailySaveBtn'), true);
 
   try {
-    const res = await apiPost({
-      action: data.ID ? 'updateDaily' : 'saveDaily',
-      data
-    });
+    const res = await apiPost(
+      {
+        action: isNew ? 'saveDaily' : 'updateDaily',
+        data
+      },
+      3
+    );
 
     if (!res.success) throw new Error(res.message || '儲存失敗');
 
