@@ -907,7 +907,7 @@ dialog::backdrop {
       <div class="phase-layout">
         <div class="phase-card pre">
           <h4>盤前資料</h4>
-          <div class="phase-note">盤前重點：開盤美股市值、美股水位</div>
+          <div class="phase-note">盤前重點：開盤美股市值、美股水位；盤前可佈局 / 調節金額以台幣輸入</div>
           <div class="section-title">美股</div>
           <div class="form-grid">
             <div class="field-card">
@@ -930,8 +930,8 @@ dialog::backdrop {
               </select>
             </div>
             <div class="field-card">
-              <label>盤前可佈局 / 調節金額</label>
-              <input id="usPreAdjustmentAmount" type="number" step="0.01">
+              <label>盤前可佈局 / 調節金額（TWD）</label>
+              <input id="usPreAdjustmentAmount" type="number" step="1">
             </div>
           </div>
         </div>
@@ -1516,12 +1516,12 @@ function renderDashboard() {
     $('dPreAdjustmentAmount').textContent = fmtTWD(twPreAmount);
   } else if (scope === '美股') {
     $('dPreAdjustmentType').textContent = `美股：${usPreType}`;
-    $('dPreAdjustmentAmount').textContent = fmtUSD(usPreAmount);
+    $('dPreAdjustmentAmount').textContent = fmtTWD(usPreAmount);
   } else {
     $('dPreAdjustmentType').textContent =
       `台股：${twPreType} / 美股：${usPreType}`;
     $('dPreAdjustmentAmount').textContent =
-      `${fmtTWD(twPreAmount)} / ${fmtUSD(usPreAmount)}`;
+      `${fmtTWD(twPreAmount)} / ${fmtTWD(usPreAmount)}`;
   }
 renderDashboardChart();
 }
@@ -1694,7 +1694,7 @@ function renderDaily() {
               <div class="status-label">美股盤前資金狀態</div>
               <div>
                 ${statusBadge(r.USPreAdjustmentType || '可佈局')}
-                ${fmtUSD(r.USPreAdjustmentAmount || 0)}
+                ${fmtTWD(r.USPreAdjustmentAmount || 0)}
               </div>
             </div>` : ''}
           </div>
