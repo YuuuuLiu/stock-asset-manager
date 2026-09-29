@@ -1090,18 +1090,46 @@ function createClientID() {
   );
 }
 
-async function fetchWithTimeout(url, options = {}, timeoutMs = 15000) {
-  const controller = new AbortController();
-  const timer = setTimeout(
-    () => controller.abort(),
-    timeoutMs
-  );
+async function fetchWithTimeout(
+  url,
+  options = {},
+  timeoutMs = 30000
+) {
+  const controller =
+    new AbortController();
+
+  let timedOut = false;
+
+  const timer =
+    setTimeout(
+      () => {
+        timedOut = true;
+        controller.abort();
+      },
+      timeoutMs
+    );
 
   try {
-    return await fetch(url, {
-      ...options,
-      signal: controller.signal
-    });
+    return await fetch(
+      url,
+      {
+        ...options,
+        signal: controller.signal
+      }
+    );
+
+  } catch (err) {
+    if (
+      timedOut ||
+      err?.name === 'AbortError'
+    ) {
+      throw new Error(
+        `API 等候超過 ${Math.round(timeoutMs / 1000)} 秒`
+      );
+    }
+
+    throw err;
+
   } finally {
     clearTimeout(timer);
   }
@@ -1167,7 +1195,7 @@ async function apiGet(action, retry = 3) {
             method: 'GET',
             cache: 'no-store'
           },
-          15000
+          30000
         );
 
       const text =
@@ -1204,7 +1232,7 @@ async function apiGet(action, retry = 3) {
   );
 }
 
-async function apiPost(payload, retry = 1) {
+async function apiPost(payload, retry = 2) {
   let lastError = null;
 
   for (let attempt = 1; attempt <= retry; attempt++) {
@@ -1220,7 +1248,7 @@ async function apiPost(payload, retry = 1) {
             body: JSON.stringify(payload),
             cache: 'no-store'
           },
-          15000
+          60000
         );
 
       const text =
@@ -1253,7 +1281,7 @@ async function apiPost(payload, retry = 1) {
   }
 
   throw new Error(
-    `API 儲存失敗，已重試 ${retry} 次：${lastError?.message || '未知錯誤'}`
+    `API 儲存失敗，已嘗試 ${retry} 次：${lastError?.message || '未知錯誤'}`
   );
 }
 
@@ -2061,7 +2089,7 @@ async function saveDaily() {
         action: isNew ? 'saveDaily' : 'updateDaily',
         data
       },
-      3
+      2
     );
 
     if (!res.success) throw new Error(res.message || '儲存失敗');
@@ -2070,7 +2098,11 @@ async function saveDaily() {
     await loadAll();
   } catch (err) {
     console.error(err);
-    alert('儲存失敗：' + err.message);
+    alert(
+      '儲存失敗：' +
+      err.message +
+      '\n\n請先不要連續按儲存，可稍後再試。系統已使用固定 ID，重試不會重複新增同一筆每日資產。'
+    );
   } finally {
     setSaving($('dailySaveBtn'), false);
   }
