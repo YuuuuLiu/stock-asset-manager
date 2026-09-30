@@ -703,12 +703,12 @@ dialog::backdrop {
 
         <div class="kpi-card market-us-only">
           <div class="label">開盤美股市值</div>
-          <div class="value" id="dUSOpen">US$ 0</div>
+          <div class="value" id="dUSOpen">NT$ 0</div>
         </div>
 
         <div class="kpi-card market-us-only">
           <div class="label">收盤美股市值</div>
-          <div class="value" id="dUSClose">US$ 0</div>
+          <div class="value" id="dUSClose">NT$ 0</div>
           <div class="sub" id="dUSRate">水位 0%</div>
         </div>
 
@@ -907,12 +907,12 @@ dialog::backdrop {
       <div class="phase-layout">
         <div class="phase-card pre">
           <h4>盤前資料</h4>
-          <div class="phase-note">盤前重點：開盤美股市值、美股水位；盤前可佈局 / 調節金額以台幣輸入</div>
+          <div class="phase-note">盤前重點：開盤美股市值與盤前可佈局 / 調節金額皆以台幣輸入</div>
           <div class="section-title">美股</div>
           <div class="form-grid">
             <div class="field-card">
-              <label>開盤美股市值 (USD)</label>
-              <input id="usOpenValue" type="number" step="0.01">
+              <label>開盤美股市值（TWD）</label>
+              <input id="usOpenValue" type="number" step="1">
             </div>
             <div class="field-card">
               <label>美股水位 (%)</label>
@@ -938,12 +938,12 @@ dialog::backdrop {
 
         <div class="phase-card post">
           <h4>盤後資料</h4>
-          <div class="phase-note">盤後重點：收盤美股市值、買入 / 賣出金額與明細</div>
+          <div class="phase-note">盤後重點：收盤美股市值以台幣輸入、買入 / 賣出金額與明細</div>
           <div class="section-title">美股</div>
           <div class="form-grid">
             <div class="field-card">
-              <label>收盤美股市值 (USD)</label>
-              <input id="usCloseValue" type="number" step="0.01">
+              <label>收盤美股市值（TWD）</label>
+              <input id="usCloseValue" type="number" step="1">
             </div>
             <div class="field-card">
               <label>買入金額 (USD)</label>
@@ -1465,8 +1465,8 @@ function resetDashboardCards() {
   $('dTWOpen').textContent = 'NT$ 0';
   $('dTWClose').textContent = 'NT$ 0';
   $('dTWRate').textContent = '水位 0%';
-  $('dUSOpen').textContent = 'US$ 0';
-  $('dUSClose').textContent = 'US$ 0';
+  $('dUSOpen').textContent = 'NT$ 0';
+  $('dUSClose').textContent = 'NT$ 0';
   $('dUSRate').textContent = '水位 0%';
   $('dBank').textContent = 'NT$ 0';
   $('dUSBank').textContent = 'NT$ 0';
@@ -1503,8 +1503,8 @@ function renderDashboard() {
   $('dTWOpen').textContent = fmtTWD(row.TWOpenValue);
   $('dTWClose').textContent = fmtTWD(row.TWCloseValue);
   $('dTWRate').textContent = `水位 ${Number(row.TWPositionRate || 0).toFixed(2)}%`;
-  $('dUSOpen').textContent = fmtUSD(row.USOpenValue);
-  $('dUSClose').textContent = fmtUSD(row.USCloseValue);
+  $('dUSOpen').textContent = fmtTWD(row.USOpenValue);
+  $('dUSClose').textContent = fmtTWD(row.USCloseValue);
   $('dUSRate').textContent = `水位 ${Number(row.USPositionRate || 0).toFixed(2)}%`;
   const dashboardSharedBank =
     row.BankBalance ??
@@ -1669,9 +1669,9 @@ function renderDaily() {
       if (r.TWSellDetail) postLines.push(`賣出明細：${esc(r.TWSellDetail)}`);
     }
     if (scope === '美股' || scope === '台/美股') {
-      preLines.push(`開盤美股市值：${fmtUSD(r.USOpenValue)}`);
+      preLines.push(`開盤美股市值：${fmtTWD(r.USOpenValue)}`);
       preLines.push(`美股水位：${Number(r.USPositionRate || 0).toFixed(2)}%`);
-      postLines.push(`收盤美股市值：${fmtUSD(r.USCloseValue)}`);
+      postLines.push(`收盤美股市值：${fmtTWD(r.USCloseValue)}`);
       postLines.push(`美股買入：${fmtUSD(r.USBuyAmount || 0)}`);
       postLines.push(`美股賣出：${fmtUSD(r.USSellAmount || 0)}`);
       if (r.USBuyDetail) postLines.push(`買入明細：${esc(r.USBuyDetail)}`);
