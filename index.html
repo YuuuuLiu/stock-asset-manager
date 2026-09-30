@@ -954,8 +954,8 @@ dialog::backdrop {
               <input id="usSellAmount" type="number" step="0.01" oninput="updateUSBankAfterTradePreview()">
             </div>
             <div class="field-card full">
-              <label>銀行帳戶（扣除今日交易金額）<br><span style="font-weight:400;">銀行帳戶 + 賣出金額 - 買入金額；可手動修改</span></label>
-              <input id="usBankAfterTradePreview" type="number" step="0.01">
+              <label>銀行帳戶（扣除今日交易金額，TWD）<br><span style="font-weight:400;">銀行帳戶 + 賣出金額 - 買入金額；可手動修改</span></label>
+              <input id="usBankAfterTradePreview" type="number" step="1">
             </div>
             <div class="field-card full">
               <label>買入明細</label>
@@ -1703,7 +1703,7 @@ function renderDaily() {
             ${personHasUS(r.PersonID) ? `
             <div style="margin-top:6px;">美股買入：${fmtUSD(r.USBuyAmount || 0)}</div>
             <div>美股賣出：${fmtUSD(r.USSellAmount || 0)}</div>
-            <div>美股交易後：${fmtUSD(r.USBankAfterTrade || 0)}</div>` : ''}
+            <div>美股交易後：${fmtTWD(r.USBankAfterTrade || 0)}</div>` : ''}
           </div>
         </td>
         <td>
