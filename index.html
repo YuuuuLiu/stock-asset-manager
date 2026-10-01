@@ -727,6 +727,12 @@ dialog::backdrop {
           <div class="value" id="dTrade">NT$ 0</div>
         </div>
 
+        <div class="kpi-card">
+          <div class="label">已實現損益</div>
+          <div class="value" id="dRealizedProfit">NT$ 0</div>
+          <div class="sub" id="dRealizedProfitDetail">台股 NT$ 0 / 美股 NT$ 0</div>
+        </div>
+
 
       </div>
 
@@ -886,6 +892,10 @@ dialog::backdrop {
               <label>賣出金額</label>
               <input id="twSellAmount" type="number" step="1" oninput="updateBankAfterTradePreview()">
             </div>
+            <div class="field-card">
+              <label>已實現損益（TWD）</label>
+              <input id="twProfitAmount" type="number" step="1">
+            </div>
             <div class="field-card full">
               <label>銀行帳戶（扣除今日交易金額）<br><span style="font-weight:400;">銀行帳戶 + 賣出金額 - 買入金額；可手動修改</span></label>
               <input id="bankAfterTradePreview" type="number" step="1">
@@ -952,6 +962,10 @@ dialog::backdrop {
             <div class="field-card">
               <label>賣出金額 (USD)</label>
               <input id="usSellAmount" type="number" step="0.01" oninput="updateUSBankAfterTradePreview()">
+            </div>
+            <div class="field-card">
+              <label>已實現損益（TWD）</label>
+              <input id="usProfitAmount" type="number" step="1">
             </div>
             <div class="field-card full">
               <label>銀行帳戶（扣除今日交易金額，TWD）<br><span style="font-weight:400;">銀行帳戶 + 賣出金額 - 買入金額；可手動修改</span></label>
@@ -1471,6 +1485,8 @@ function resetDashboardCards() {
   $('dBank').textContent = 'NT$ 0';
   $('dUSBank').textContent = 'NT$ 0';
   $('dTrade').textContent = 'NT$ 0';
+  $('dRealizedProfit').textContent = 'NT$ 0';
+  $('dRealizedProfitDetail').textContent = '台股 NT$ 0 / 美股 NT$ 0';
   $('dBankAfter').textContent = 'NT$ 0';
   $('dPreAdjustmentType').textContent = '—';
   $('dPreAdjustmentAmount').textContent = 'NT$ 0';
@@ -1518,6 +1534,22 @@ function renderDashboard() {
   $('dUSBank').textContent =
     fmtTWD(dashboardSharedBank);
   $('dTrade').textContent = fmtTWD(row.TodayTradeAmount);
+
+  const twRealizedProfit =
+    Number(row.TWProfitAmount || 0);
+
+  const usRealizedProfit =
+    Number(row.USProfitAmount || 0);
+
+  const totalRealizedProfit =
+    twRealizedProfit +
+    usRealizedProfit;
+
+  $('dRealizedProfit').textContent =
+    fmtTWD(totalRealizedProfit);
+
+  $('dRealizedProfitDetail').textContent =
+    `台股 ${fmtTWD(twRealizedProfit)} / 美股 ${fmtTWD(usRealizedProfit)}`;
   $('dBankAfter').textContent = fmtTWD(row.BankAfterTrade);
   const scope = getPersonScope(personID);
 
@@ -1665,6 +1697,7 @@ function renderDaily() {
       postLines.push(`收盤台股市值：${fmtTWD(r.TWCloseValue)}`);
       postLines.push(`台股買入：${fmtTWD(r.TWBuyAmount || 0)}`);
       postLines.push(`台股賣出：${fmtTWD(r.TWSellAmount || 0)}`);
+      postLines.push(`台股已實現損益：${fmtTWD(r.TWProfitAmount || 0)}`);
       if (r.TWBuyDetail) postLines.push(`買入明細：${esc(r.TWBuyDetail)}`);
       if (r.TWSellDetail) postLines.push(`賣出明細：${esc(r.TWSellDetail)}`);
     }
@@ -1674,6 +1707,7 @@ function renderDaily() {
       postLines.push(`收盤美股市值：${fmtTWD(r.USCloseValue)}`);
       postLines.push(`美股買入：${fmtUSD(r.USBuyAmount || 0)}`);
       postLines.push(`美股賣出：${fmtUSD(r.USSellAmount || 0)}`);
+      postLines.push(`美股已實現損益：${fmtTWD(r.USProfitAmount || 0)}`);
       if (r.USBuyDetail) postLines.push(`買入明細：${esc(r.USBuyDetail)}`);
       if (r.USSellDetail) postLines.push(`賣出明細：${esc(r.USSellDetail)}`);
     }
@@ -1699,10 +1733,12 @@ function renderDaily() {
             <div>銀行帳戶（台 / 美共用）：${fmtTWD(r.BankBalance ?? r.TWBankBalance ?? r.USBankBalance)}</div>
             <div>台股買入：${fmtTWD(r.TWBuyAmount || 0)}</div>
             <div>台股賣出：${fmtTWD(r.TWSellAmount || 0)}</div>
+            <div>台股已實現損益：${fmtTWD(r.TWProfitAmount || 0)}</div>
             <div>台股交易後：${fmtTWD(r.TWBankAfterTrade ?? r.BankAfterTrade)}</div>
             ${personHasUS(r.PersonID) ? `
             <div style="margin-top:6px;">美股買入：${fmtUSD(r.USBuyAmount || 0)}</div>
             <div>美股賣出：${fmtUSD(r.USSellAmount || 0)}</div>
+            <div>美股已實現損益：${fmtTWD(r.USProfitAmount || 0)}</div>
             <div>美股交易後：${fmtTWD(r.USBankAfterTrade || 0)}</div>` : ''}
           </div>
         </td>
@@ -1917,12 +1953,14 @@ function openDailyDialog() {
 
   $('twBuyAmount').value = 0;
   $('twSellAmount').value = 0;
+  $('twProfitAmount').value = 0;
   $('twBuyDetail').value = '';
   $('twSellDetail').value = '';
   $('bankAfterTradePreview').value = 0;
 
   $('usBuyAmount').value = 0;
   $('usSellAmount').value = 0;
+  $('usProfitAmount').value = 0;
   $('usBuyDetail').value = '';
   $('usSellDetail').value = '';
   $('usBankAfterTradePreview').value = 0;
@@ -1968,6 +2006,7 @@ function editDaily(id) {
 
   $('twBuyAmount').value = row.TWBuyAmount || 0;
   $('twSellAmount').value = row.TWSellAmount || 0;
+  $('twProfitAmount').value = row.TWProfitAmount || 0;
   $('twBuyDetail').value = row.TWBuyDetail || '';
   $('twSellDetail').value = row.TWSellDetail || '';
   $('bankAfterTradePreview').value =
@@ -1977,6 +2016,7 @@ function editDaily(id) {
 
   $('usBuyAmount').value = row.USBuyAmount || 0;
   $('usSellAmount').value = row.USSellAmount || 0;
+  $('usProfitAmount').value = row.USProfitAmount || 0;
   $('usBuyDetail').value = row.USBuyDetail || '';
   $('usSellDetail').value = row.USSellDetail || '';
   $('usBankAfterTradePreview').value =
@@ -2042,6 +2082,7 @@ async function saveDaily() {
     // 台股買入 / 賣出
     TWBuyAmount: Number($('twBuyAmount').value || 0),
     TWSellAmount: Number($('twSellAmount').value || 0),
+    TWProfitAmount: Number($('twProfitAmount').value || 0),
     TWBuyDetail: $('twBuyDetail').value.trim(),
     TWSellDetail: $('twSellDetail').value.trim(),
     TWBankAfterTrade: Number($('bankAfterTradePreview').value || 0),
@@ -2049,6 +2090,7 @@ async function saveDaily() {
     // 美股買入 / 賣出
     USBuyAmount: Number($('usBuyAmount').value || 0),
     USSellAmount: Number($('usSellAmount').value || 0),
+    USProfitAmount: Number($('usProfitAmount').value || 0),
     USBuyDetail: $('usBuyDetail').value.trim(),
     USSellDetail: $('usSellDetail').value.trim(),
     USBankAfterTrade: Number($('usBankAfterTradePreview').value || 0),
