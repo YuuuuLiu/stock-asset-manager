@@ -1858,10 +1858,10 @@ function syncSharedBankBalance(source) {
 
   if (!twInput || !usInput) return;
 
-  if (source === 'US') {
-    twInput.value = usInput.value;
-  } else {
+  if (source === 'TW') {
     usInput.value = twInput.value;
+  } else if (source === 'US') {
+    twInput.value = usInput.value;
   }
 
   updateBankAfterTradePreview();
