@@ -929,7 +929,7 @@ dialog::backdrop {
               <input id="usPositionRate" type="number" step="0.01">
             </div>
             <div class="field-card full">
-              <label>美股銀行帳戶金額（與台股共用）</label>
+              <label>美股銀行帳戶金額（承接台股盤後）</label>
               <input id="usBankBalance" type="number" step="1" oninput="syncSharedBankBalance('US')">
             </div>
             <div class="field-card">
@@ -1835,8 +1835,6 @@ function applyPreviousBankAfterTradeToBankBalance() {
   const currentDate = $('dailyDate').value;
   const previous = getPreviousDailyAsset(personID, currentDate);
 
-  // 台 / 美股共用同一個銀行帳戶值。
-  // 優先沿用舊的 BankAfterTrade；若沒有，再取新版台股 / 美股交易後金額。
   const previousSharedBank =
     Number(
       previous?.BankAfterTrade ??
@@ -1845,27 +1843,24 @@ function applyPreviousBankAfterTradeToBankBalance() {
       0
     );
 
-  $('twBankBalance').value = previousSharedBank;
-  $('usBankBalance').value = previousSharedBank;
+  $('twBankBalance').value =
+    previousSharedBank;
 
+  // 台股盤後會再自動帶入美股盤前。
   updateBankAfterTradePreview();
-  updateUSBankAfterTradePreview();
 }
 
 function syncSharedBankBalance(source) {
-  const twInput = $('twBankBalance');
-  const usInput = $('usBankBalance');
-
-  if (!twInput || !usInput) return;
-
   if (source === 'TW') {
-    usInput.value = twInput.value;
-  } else if (source === 'US') {
-    twInput.value = usInput.value;
+    // 台股本金變更後，重算台股盤後並帶入美股盤前。
+    updateBankAfterTradePreview();
+    return;
   }
 
-  updateBankAfterTradePreview();
-  updateUSBankAfterTradePreview();
+  if (source === 'US') {
+    // 美股盤前仍可手動調整，但不反向改台股本金。
+    updateUSBankAfterTradePreview();
+  }
 }
 
 function updateBankAfterTradePreview() {
@@ -1873,7 +1868,6 @@ function updateBankAfterTradePreview() {
   const buyAmount = Number($('twBuyAmount').value || 0);
   const sellAmount = Number($('twSellAmount').value || 0);
 
-  // 銀行帳戶（交易後） = 銀行帳戶 + 賣出金額 - 買入金額
   const bankAfterTrade =
     bank +
     sellAmount -
@@ -1884,7 +1878,16 @@ function updateBankAfterTradePreview() {
       ? bankAfterTrade
       : 0;
 
-  syncMirrorFields();
+  // 台股盤後交易後餘額，直接承接到美股盤前銀行帳戶。
+  const usBankInput = $('usBankBalance');
+  if (usBankInput) {
+    usBankInput.value =
+      Number.isFinite(bankAfterTrade)
+        ? bankAfterTrade
+        : 0;
+  }
+
+  updateUSBankAfterTradePreview();
 }
 
 function updateUSBankAfterTradePreview() {
@@ -1998,11 +2001,16 @@ function editDaily(id) {
   const sharedBankBalance =
     row.BankBalance ??
     row.TWBankBalance ??
-    row.USBankBalance ??
     0;
 
-  $('twBankBalance').value = sharedBankBalance;
-  $('usBankBalance').value = sharedBankBalance;
+  $('twBankBalance').value =
+    sharedBankBalance;
+
+  $('usBankBalance').value =
+    row.USBankBalance ??
+    row.TWBankAfterTrade ??
+    row.BankAfterTrade ??
+    sharedBankBalance;
 
   $('twBuyAmount').value = row.TWBuyAmount || 0;
   $('twSellAmount').value = row.TWSellAmount || 0;
@@ -2077,7 +2085,7 @@ async function saveDaily() {
 
     // 保留新版欄位相容，但兩者寫入相同值
     TWBankBalance: Number($('twBankBalance').value || 0),
-    USBankBalance: Number($('twBankBalance').value || 0),
+    USBankBalance: Number($('usBankBalance').value || 0),
 
     // 台股買入 / 賣出
     TWBuyAmount: Number($('twBuyAmount').value || 0),
